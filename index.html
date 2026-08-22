@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <title>EmailGuard - Email Threat Detection</title>
+
+        <link rel="stylesheet" href="style.css">
+    </head>
+
+    <body>
+
+        <!-- Navbar -->
+        <nav class="navbar">
+            <div class="logo">
+                🛡️ EmailGuard AI
+            </div>
+
+            <div class="status">
+                ● System Online
+            </div>
+        </nav>
+
+        <!-- Main -->
+        <main class="home-container">
+
+            <section class="intro">
+
+                <h1>
+                    AI-Powered Email Threat Detection
+                </h1>
+
+                <p>
+                    Detect phishing, spoofing, impersonation and
+                    Business Email Compromise using AI and email forensics.
+                </p>
+
+                <div class="features">
+
+                    <div>🔍 Email Forensics</div>
+                    <div>🧠 AI Threat Detection</div>
+                    <div>🌍 IP Geolocation</div>
+                    <div>🔗 Threat Intelligence</div>
+                    <div>🔐 Evidence Integrity</div>
+
+                </div>
+
+            </section>
+
+            <!-- Upload Section -->
+            <section class="upload-section">
+
+                <h2>
+                    Analyze Email
+                </h2>
+
+                <p>
+                    Upload a suspicious email file for analysis.
+                </p>
+
+                <div class="upload-box">
+
+                    <div class="upload-icon">
+                        📧
+                    </div>
+
+                    <h3>
+                        Upload .EML File
+                    </h3>
+
+                    <p>
+                        Select an email file from your computer.
+                    </p>
+
+                    <input
+                        type="file"
+                        id="emailFile"
+                        accept=".eml">
+
+                </div>
+
+                <button
+                    id="analyzeBtn"
+                    class="primary-btn"
+                    onclick="analyzeEmail()">
+                    Analyze Email
+                </button>
+
+            </section>
+
+        </main>
+
+    <script>
+        async function analyzeEmail() {
+
+    const file = document.getElementById("emailFile").files[0];
+
+    if (!file) {
+        alert("Please select an email file.");
+        return;
+    }
+
+    const button = document.getElementById("analyzeBtn");
+
+    button.textContent = "Analyzing...";
+    button.disabled = true;
+
+    const formData = new FormData();
+
+    formData.append("file", file);
+
+    try {
+
+        const response = await fetch(
+            "http://127.0.0.1:8000/analyze-email",
+            {
+                method: "POST",
+                body: formData
+            }
+        );
+
+        const result = await response.json();
+
+        if (result.error) {
+
+            alert(result.error);
+
+            button.textContent = "Analyze Email";
+            button.disabled = false;
+
+            return;
+        }
+
+        // Store complete backend response
+        localStorage.setItem(
+            "emailAnalysis",
+            JSON.stringify(result)
+        );
+
+        // Open dashboard
+        window.location.href =
+            "dashboard.html";
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(
+            "Unable to connect to EmailGuard backend."
+        );
+
+        button.textContent = "Analyze Email";
+        button.disabled = false;
+    }
+}
+    </script>
+
+    </body>
+</html>
