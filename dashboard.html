@@ -10,9 +10,20 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>EmailGuard - Dashboard</title>
+    <title>
+        EmailGuard - Dashboard
+    </title>
 
-    <link rel="stylesheet" href="style.css">
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+    <!-- Cytoscape.js for Graph Visualization -->
+
+    <script
+        src="https://unpkg.com/cytoscape@3.30.4/dist/cytoscape.min.js">
+    </script>
 
 </head>
 
@@ -20,55 +31,67 @@
 <body>
 
 
-    <!-- =====================================================
-         NAVBAR
-    ====================================================== -->
+<!-- =====================================================
+     NAVBAR
+====================================================== -->
 
-    <nav class="navbar">
+<nav class="navbar">
 
-        <div class="logo">
-            🛡️ EmailGuard AI
+    <div class="logo">
+        🛡️ EmailGuard AI
+    </div>
+
+    <div class="status">
+        ● Analysis Complete
+    </div>
+
+</nav>
+
+
+
+<!-- =====================================================
+     DASHBOARD
+====================================================== -->
+
+<main class="dashboard">
+
+
+    <!-- =================================================
+         HEADER
+    ================================================== -->
+
+    <div class="dashboard-header">
+
+        <div>
+
+            <h1>
+                Email Threat Analysis
+            </h1>
+
+            <p>
+                Case ID:
+                <span id="caseId">
+                    Loading...
+                </span>
+            </p>
+
         </div>
 
-        <div class="status">
-            ● Analysis Complete
-        </div>
 
-    </nav>
+        <div class="header-actions">
 
-
-
-    <!-- =====================================================
-         DASHBOARD
-    ====================================================== -->
-
-    <main class="dashboard">
-
-
-        <!-- =================================================
-             HEADER
-        ================================================== -->
-
-        <div class="dashboard-header">
-
-            <div>
-
-                <h1>
-                    Email Threat Analysis
-                </h1>
-
-                <p>
-                    Case ID:
-                    <span id="caseId">
-                        Loading...
-                    </span>
-                </p>
-
-            </div>
+            <input
+                type="file"
+                id="emailFile"
+                accept=".eml"
+                hidden
+            >
 
 
             <button
+                id="generateReportBtn"
                 class="secondary-btn"
+                type="button"
                 onclick="generateReport()"
             >
                 Generate Report
@@ -76,1463 +99,2709 @@
 
         </div>
 
+    </div>
 
 
-        <!-- =================================================
-             SUMMARY CARDS
-        ================================================== -->
 
-        <section class="cards">
+    <!-- =================================================
+         SUMMARY CARDS
+    ================================================== -->
 
+    <section class="cards">
 
-            <!-- Threat Score -->
 
-            <div class="card">
+        <div class="card">
 
-                <h3>
-                    Threat Score
-                </h3>
-
-                <div
-                    id="riskScore"
-                    class="score"
-                >
-                    --
-                </div>
-
-                <p id="classification">
-                    Loading...
-                </p>
-
-            </div>
-
-
-
-            <!-- Classification -->
-
-            <div class="card">
-
-                <h3>
-                    Classification
-                </h3>
-
-                <div
-                    id="threatTypes"
-                    class="value"
-                >
-                    Loading...
-                </div>
-
-                <p>
-                    Threat Detection
-                </p>
-
-            </div>
-
-
-
-            <!-- Indicators -->
-
-            <div class="card">
-
-                <h3>
-                    Suspicious Indicators
-                </h3>
-
-                <div
-                    id="indicatorCount"
-                    class="score warning"
-                >
-                    --
-                </div>
-
-                <p>
-                    Indicators Found
-                </p>
-
-            </div>
-
-
-
-            <!-- URLs -->
-
-            <div class="card">
-
-                <h3>
-                    Suspicious URLs
-                </h3>
-
-                <div
-                    id="urlCount"
-                    class="score"
-                >
-                    --
-                </div>
-
-                <p>
-                    URLs Detected
-                </p>
-
-            </div>
-
-
-        </section>
-
-
-
-        <!-- =================================================
-             EMAIL INFORMATION
-        ================================================== -->
-
-        <section class="two-column">
-
-
-            <!-- Email -->
-
-            <div class="panel">
-
-                <h2>
-                    Email Information
-                </h2>
-
-
-                <div class="info-row">
-
-                    <strong>
-                        From:
-                    </strong>
-
-                    <span id="fromEmail">
-                        Loading...
-                    </span>
-
-                </div>
-
-
-                <div class="info-row">
-
-                    <strong>
-                        From Name:
-                    </strong>
-
-                    <span id="fromName">
-                        Loading...
-                    </span>
-
-                </div>
-
-
-                <div class="info-row">
-
-                    <strong>
-                        To:
-                    </strong>
-
-                    <span id="toEmail">
-                        Loading...
-                    </span>
-
-                </div>
-
-
-                <div class="info-row">
-
-                    <strong>
-                        Reply-To:
-                    </strong>
-
-                    <span id="replyTo">
-                        Loading...
-                    </span>
-
-                </div>
-
-
-                <div class="info-row">
-
-                    <strong>
-                        Subject:
-                    </strong>
-
-                    <span id="subject">
-                        Loading...
-                    </span>
-
-                </div>
-
-
-                <div class="info-row">
-
-                    <strong>
-                        Message ID:
-                    </strong>
-
-                    <span id="messageId">
-                        Loading...
-                    </span>
-
-                </div>
-
-
-                <div class="info-row">
-
-                    <strong>
-                        Return Path:
-                    </strong>
-
-                    <span id="returnPath">
-                        Loading...
-                    </span>
-
-                </div>
-
-
-            </div>
-
-
-
-            <!-- Authentication -->
-
-            <div class="panel">
-
-                <h2>
-                    Email Authentication
-                </h2>
-
-
-                <div class="auth-row">
-
-                    <span>
-                        SPF
-                    </span>
-
-                    <strong id="spf">
-                        UNKNOWN
-                    </strong>
-
-                </div>
-
-
-                <div class="auth-row">
-
-                    <span>
-                        DKIM
-                    </span>
-
-                    <strong id="dkim">
-                        UNKNOWN
-                    </strong>
-
-                </div>
-
-
-                <div class="auth-row">
-
-                    <span>
-                        DMARC
-                    </span>
-
-                    <strong id="dmarc">
-                        UNKNOWN
-                    </strong>
-
-                </div>
-
-            </div>
-
-
-        </section>
-
-
-
-        <!-- =================================================
-             THREAT INDICATORS
-        ================================================== -->
-
-        <section class="panel">
-
-            <h2>
-                Threat Indicators
-            </h2>
-
+            <h3>
+                Threat Score
+            </h3>
 
             <div
-                id="indicators"
-                class="indicators"
+                id="riskScore"
+                class="score"
             >
-
+                --
             </div>
 
-        </section>
-
-
-
-        <!-- =================================================
-             EMAIL ROUTE
-        ================================================== -->
-
-        <section class="panel">
-
-            <h2>
-                Email Transmission Path
-            </h2>
-
-
-            <div
-                id="emailRoute"
-                class="route"
-            >
-
-            </div>
-
-        </section>
-
-
-
-        <!-- =================================================
-             IP & GEOLOCATION
-        ================================================== -->
-
-        <section class="two-column">
-
-
-            <!-- IP -->
-
-            <div class="panel">
-
-                <h2>
-                    IP & Geolocation
-                </h2>
-
-
-                <div class="info-row">
-
-                    <strong>
-                        IP Address:
-                    </strong>
-
-                    <span id="ipAddress">
-                        Loading...
-                    </span>
-
-                </div>
-
-
-                <div class="info-row">
-
-                    <strong>
-                        Country:
-                    </strong>
-
-                    <span id="country">
-                        Pending API
-                    </span>
-
-                </div>
-
-
-                <div class="info-row">
-
-                    <strong>
-                        Region:
-                    </strong>
-
-                    <span id="region">
-                        Pending API
-                    </span>
-
-                </div>
-
-
-                <div class="info-row">
-
-                    <strong>
-                        City:
-                    </strong>
-
-                    <span id="city">
-                        Pending API
-                    </span>
-
-                </div>
-
-
-                <div class="info-row">
-
-                    <strong>
-                        ISP:
-                    </strong>
-
-                    <span id="isp">
-                        Pending API
-                    </span>
-
-                </div>
-
-
-                <div class="info-row">
-
-                    <strong>
-                        Organization:
-                    </strong>
-
-                    <span id="organization">
-                        Pending API
-                    </span>
-
-                </div>
-
-            </div>
-
-
-
-            <!-- Investigation -->
-
-            <div class="panel">
-
-                <h2>
-                    Investigation Relationship
-                </h2>
-
-
-                <div class="simple-graph">
-
-                    <div>
-                        📧 Email
-                    </div>
-
-                    <span>
-                        ↓
-                    </span>
-
-                    <div id="graphDomain">
-                        🌐 Domain
-                    </div>
-
-                    <span>
-                        ↓
-                    </span>
-
-                    <div id="graphIP">
-                        🖥️ IP Address
-                    </div>
-
-                    <span>
-                        ↓
-                    </span>
-
-                    <div>
-                        🎯 Possible Campaign
-                    </div>
-
-                </div>
-
-            </div>
-
-
-        </section>
-
-
-
-        <!-- =================================================
-             URLs
-        ================================================== -->
-
-        <section class="panel">
-
-            <h2>
-                Detected URLs
-            </h2>
-
-
-            <div id="urls">
-
-            </div>
-
-        </section>
-
-
-
-        <!-- =================================================
-             SUSPICIOUS URLS
-        ================================================== -->
-
-        <section class="panel">
-
-            <h2>
-                Suspicious URLs
-            </h2>
-
-
-            <div id="suspiciousUrls">
-
-            </div>
-
-        </section>
-
-
-
-        <!-- =================================================
-             RISK FACTORS
-        ================================================== -->
-
-        <section class="panel">
-
-            <h2>
-                Risk Factors
-            </h2>
-
-
-            <div id="riskFactors">
-
-            </div>
-
-        </section>
-
-
-
-        <!-- =================================================
-             AI SUMMARY
-        ================================================== -->
-
-        <section class="panel">
-
-            <h2>
-                AI Investigation Summary
-            </h2>
-
-
-            <p
-                id="summary"
-                class="summary"
-            >
-                Loading analysis...
+            <p id="classification">
+                Loading...
             </p>
 
-        </section>
+        </div>
+
+
+
+        <div class="card">
+
+            <h3>
+                Classification
+            </h3>
+
+            <div
+                id="threatTypes"
+                class="value"
+            >
+                Loading...
+            </div>
+
+            <p>
+                Threat Detection
+            </p>
+
+        </div>
+
+
+
+        <div class="card">
+
+            <h3>
+                Suspicious Indicators
+            </h3>
+
+            <div
+                id="indicatorCount"
+                class="score warning"
+            >
+                --
+            </div>
+
+            <p>
+                Indicators Found
+            </p>
+
+        </div>
+
+
+
+        <div class="card">
+
+            <h3>
+                Suspicious URLs
+            </h3>
+
+            <div
+                id="urlCount"
+                class="score"
+            >
+                --
+            </div>
+
+            <p>
+                URLs Detected
+            </p>
+
+        </div>
+
+
+    </section>
+
+
+
+    <!-- =================================================
+         EMAIL INFORMATION
+    ================================================== -->
+
+    <section class="two-column">
+
+
+        <div class="panel">
+
+            <h2>
+                Email Information
+            </h2>
+
+
+            <div class="info-row">
+
+                <strong>
+                    From:
+                </strong>
+
+                <span id="fromEmail">
+                    Loading...
+                </span>
+
+            </div>
+
+
+            <div class="info-row">
+
+                <strong>
+                    From Name:
+                </strong>
+
+                <span id="fromName">
+                    Loading...
+                </span>
+
+            </div>
+
+
+            <div class="info-row">
+
+                <strong>
+                    To:
+                </strong>
+
+                <span id="toEmail">
+                    Loading...
+                </span>
+
+            </div>
+
+
+            <div class="info-row">
+
+                <strong>
+                    Reply-To:
+                </strong>
+
+                <span id="replyTo">
+                    Loading...
+                </span>
+
+            </div>
+
+
+            <div class="info-row">
+
+                <strong>
+                    Subject:
+                </strong>
+
+                <span id="subject">
+                    Loading...
+                </span>
+
+            </div>
+
+
+            <div class="info-row">
+
+                <strong>
+                    Message ID:
+                </strong>
+
+                <span id="messageId">
+                    Loading...
+                </span>
+
+            </div>
+
+
+            <div class="info-row">
+
+                <strong>
+                    Return Path:
+                </strong>
+
+                <span id="returnPath">
+                    Loading...
+                </span>
+
+            </div>
+
+        </div>
 
 
 
         <!-- =================================================
-             EVIDENCE
+             AUTHENTICATION
         ================================================== -->
 
-        <section class="panel">
+        <div class="panel">
 
             <h2>
-                Evidence Integrity
+                Email Authentication
             </h2>
 
 
-            <div class="blockchain">
+            <div class="auth-row">
 
+                <span>
+                    SPF
+                </span>
 
-                <div>
-                    🔐 Evidence Hash
-                </div>
-
-
-                <div>
-
-                    SHA-256:
-
-                    <span id="hash">
-                        Loading...
-                    </span>
-
-                </div>
-
-
-                <div
-                    id="integrity"
-                    class="verified"
-                >
-                    ✓ Evidence Verified
-                </div>
-
+                <strong id="spf">
+                    UNKNOWN
+                </strong>
 
             </div>
 
-        </section>
+
+            <div class="auth-row">
+
+                <span>
+                    DKIM
+                </span>
+
+                <strong id="dkim">
+                    UNKNOWN
+                </strong>
+
+            </div>
 
 
-    </main>
+            <div class="auth-row">
+
+                <span>
+                    DMARC
+                </span>
+
+                <strong id="dmarc">
+                    UNKNOWN
+                </strong>
+
+            </div>
+
+        </div>
+
+
+    </section>
 
 
 
-    <!-- =====================================================
-         JAVASCRIPT
-    ====================================================== -->
+    <!-- =================================================
+         THREAT INDICATORS
+    ================================================== -->
 
-    <script>
+    <section class="panel">
+
+        <h2>
+            Threat Indicators
+        </h2>
+
+        <div
+            id="indicators"
+            class="indicators"
+        ></div>
+
+    </section>
 
 
-        // ====================================================
-        // GET DATA FROM LOCAL STORAGE
-        // ====================================================
 
-        const storedData =
-            localStorage.getItem("emailAnalysis");
+    <!-- =================================================
+         EMAIL ROUTE
+    ================================================== -->
+
+    <section class="panel">
+
+        <h2>
+            Email Transmission Path
+        </h2>
+
+        <div
+            id="emailRoute"
+            class="route"
+        ></div>
+
+    </section>
 
 
-        if (!storedData) {
 
-            alert(
-                "No email analysis found. Please analyze an email first."
+    <!-- =================================================
+         IP INFORMATION
+    ================================================== -->
+
+    <section class="two-column">
+
+
+        <div class="panel">
+
+            <h2>
+                IP & Geolocation
+            </h2>
+
+
+            <div class="info-row">
+
+                <strong>
+                    IP Address:
+                </strong>
+
+                <span id="ipAddress">
+                    Loading...
+                </span>
+
+            </div>
+
+
+            <div class="info-row">
+
+                <strong>
+                    Country:
+                </strong>
+
+                <span id="country">
+                    Pending API
+                </span>
+
+            </div>
+
+
+            <div class="info-row">
+
+                <strong>
+                    Region:
+                </strong>
+
+                <span id="region">
+                    Pending API
+                </span>
+
+            </div>
+
+
+            <div class="info-row">
+
+                <strong>
+                    City:
+                </strong>
+
+                <span id="city">
+                    Pending API
+                </span>
+
+            </div>
+
+
+            <div class="info-row">
+
+                <strong>
+                    ISP:
+                </strong>
+
+                <span id="isp">
+                    Pending API
+                </span>
+
+            </div>
+
+
+            <div class="info-row">
+
+                <strong>
+                    Organization:
+                </strong>
+
+                <span id="organization">
+                    Pending API
+                </span>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =================================================
+             RELATIONSHIP
+        ================================================== -->
+
+        <div class="panel">
+
+            <h2>
+                Investigation Relationship
+            </h2>
+
+
+            <div class="simple-graph">
+
+                <div>
+                    📧 Email
+                </div>
+
+                <span>
+                    ↓
+                </span>
+
+                <div id="graphDomain">
+                    🌐 Domain
+                </div>
+
+                <span>
+                    ↓
+                </span>
+
+                <div id="graphIP">
+                    🖥️ IP Address
+                </div>
+
+                <span>
+                    ↓
+                </span>
+
+                <div>
+                    🎯 Possible Campaign
+                </div>
+
+            </div>
+
+        </div>
+
+
+    </section>
+
+
+
+    <!-- =================================================
+         P2 GRAPH VISUALIZATION
+    ================================================== -->
+
+    <section class="panel graph-panel">
+
+        <div class="section-header">
+
+            <div>
+
+                <h2>
+                    🕸️ Investigation Graph
+                </h2>
+
+                <p>
+                    Visual relationship between email,
+                    sender infrastructure and threat indicators.
+                </p>
+
+            </div>
+
+            <div
+                id="graphStatus"
+                class="graph-status"
+            >
+                Analysis Graph
+            </div>
+
+        </div>
+
+
+        <div
+            id="cy"
+            class="cytoscape-container"
+        ></div>
+
+
+        <div class="graph-legend">
+
+            <span>
+                📧 Email
+            </span>
+
+            <span>
+                🌐 Domain
+            </span>
+
+            <span>
+                🖥️ IP
+            </span>
+
+            <span>
+                🔗 URL
+            </span>
+
+            <span>
+                ⚠️ Threat
+            </span>
+
+            <span>
+                🎯 Campaign
+            </span>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =================================================
+         P2 CAMPAIGN CORRELATION
+    ================================================== -->
+
+    <section class="panel">
+
+        <div class="section-header">
+
+            <div>
+
+                <h2>
+                    🔗 Campaign Correlation
+                </h2>
+
+                <p>
+                    Potential relationships discovered from
+                    shared domains, IP addresses and URLs.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div
+            id="campaignCorrelation"
+            class="campaign-grid"
+        ></div>
+
+    </section>
+
+
+
+    <!-- =================================================
+         DETECTED URLS
+    ================================================== -->
+
+    <section class="panel">
+
+        <h2>
+            Detected URLs
+        </h2>
+
+        <div id="urls"></div>
+
+    </section>
+
+
+
+    <!-- =================================================
+         SUSPICIOUS URLS
+    ================================================== -->
+
+    <section class="panel">
+
+        <h2>
+            Suspicious URLs
+        </h2>
+
+        <div id="suspiciousUrls"></div>
+
+    </section>
+
+
+
+    <!-- =================================================
+         RISK FACTORS
+    ================================================== -->
+
+    <section class="panel">
+
+        <h2>
+            Risk Factors
+        </h2>
+
+        <div id="riskFactors"></div>
+
+    </section>
+
+
+
+    <!-- =================================================
+         AI SUMMARY
+    ================================================== -->
+
+    <section class="panel">
+
+        <h2>
+            AI Investigation Summary
+        </h2>
+
+        <p
+            id="summary"
+            class="summary"
+        >
+            Loading analysis...
+        </p>
+
+    </section>
+
+
+
+    <!-- =================================================
+         EVIDENCE
+    ================================================== -->
+
+    <section class="panel">
+
+        <h2>
+            Evidence Integrity
+        </h2>
+
+
+        <div class="blockchain">
+
+            <div>
+                🔐 Evidence Hash
+            </div>
+
+
+            <div>
+
+                SHA-256:
+
+                <span id="hash">
+                    Loading...
+                </span>
+
+            </div>
+
+
+            <div
+                id="integrity"
+                class="verified"
+            >
+                ✓ Evidence Verified
+            </div>
+
+        </div>
+
+    </section>
+
+
+</main>
+
+
+
+<script>
+
+
+// ============================================================
+// LOAD ANALYSIS DATA
+// ============================================================
+
+const storedData =
+    localStorage.getItem(
+        "emailAnalysis"
+    );
+
+
+if (!storedData) {
+
+    alert(
+        "No email analysis found. Please analyze an email first."
+    );
+
+    window.location.href =
+        "index.html";
+
+}
+
+
+let data;
+
+
+try {
+
+    data =
+        JSON.parse(
+            storedData
+        );
+
+}
+catch (error) {
+
+    console.error(
+        "JSON parsing error:",
+        error
+    );
+
+    alert(
+        "Invalid analysis data."
+    );
+
+    window.location.href =
+        "index.html";
+
+}
+
+
+
+// ============================================================
+// HELPER
+// ============================================================
+
+function setText(
+    id,
+    value
+) {
+
+    const element =
+        document.getElementById(
+            id
+        );
+
+
+    if (!element) {
+
+        return;
+
+    }
+
+
+    if (
+        value !== undefined &&
+        value !== null &&
+        value !== ""
+    ) {
+
+        element.textContent =
+            value;
+
+    }
+    else {
+
+        element.textContent =
+            "Not available";
+
+    }
+
+}
+
+
+
+// ============================================================
+// ESCAPE HTML
+// ============================================================
+
+function escapeHtml(value) {
+
+    if (
+        value === undefined ||
+        value === null
+    ) {
+
+        return "";
+
+    }
+
+
+    return String(value)
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
+
+
+
+// ============================================================
+// CASE
+// ============================================================
+
+setText(
+    "caseId",
+    data.case_id
+);
+
+
+
+// ============================================================
+// RISK SCORE
+// ============================================================
+
+const riskScore =
+    Number(
+        data.risk_score || 0
+    );
+
+
+setText(
+    "riskScore",
+    riskScore + "/100"
+);
+
+
+setText(
+    "classification",
+    data.classification
+);
+
+
+const scoreElement =
+    document.getElementById(
+        "riskScore"
+    );
+
+
+if (riskScore >= 60) {
+
+    scoreElement.classList.add(
+        "danger"
+    );
+
+}
+else if (riskScore >= 30) {
+
+    scoreElement.classList.add(
+        "warning"
+    );
+
+}
+
+
+
+// ============================================================
+// THREAT TYPES
+// ============================================================
+
+const threatTypes =
+    data.threat_types || [];
+
+
+setText(
+    "threatTypes",
+    threatTypes.length
+        ? threatTypes.join(" / ")
+        : "None detected"
+);
+
+
+
+// ============================================================
+// INDICATORS
+// ============================================================
+
+const indicators =
+    data.indicators || [];
+
+
+setText(
+    "indicatorCount",
+    indicators.length
+);
+
+
+
+// ============================================================
+// URLS
+// ============================================================
+
+const urls =
+    data.urls || [];
+
+
+setText(
+    "urlCount",
+    urls.length
+);
+
+
+
+// ============================================================
+// EMAIL
+// ============================================================
+
+const email =
+    data.email || {};
+
+
+setText(
+    "fromEmail",
+    email.from_email ||
+    email.from
+);
+
+
+setText(
+    "fromName",
+    email.from_name
+);
+
+
+setText(
+    "toEmail",
+    email.to
+);
+
+
+setText(
+    "replyTo",
+    email.reply_to
+);
+
+
+setText(
+    "subject",
+    email.subject
+);
+
+
+setText(
+    "messageId",
+    email.message_id
+);
+
+
+setText(
+    "returnPath",
+    email.return_path
+);
+
+
+
+// ============================================================
+// AUTHENTICATION
+// ============================================================
+
+const authentication =
+    data.authentication || {};
+
+
+setText(
+    "spf",
+    authentication.spf ||
+    "UNKNOWN"
+);
+
+
+setText(
+    "dkim",
+    authentication.dkim ||
+    "UNKNOWN"
+);
+
+
+setText(
+    "dmarc",
+    authentication.dmarc ||
+    "UNKNOWN"
+);
+
+
+
+// ============================================================
+// AUTH COLORS
+// ============================================================
+
+function updateAuthColor(id) {
+
+    const element =
+        document.getElementById(
+            id
+        );
+
+
+    if (!element) {
+
+        return;
+
+    }
+
+
+    const value =
+        element.textContent.toUpperCase();
+
+
+    if (
+        value === "FAIL" ||
+        value === "SOFTFAIL"
+    ) {
+
+        element.classList.add(
+            "fail"
+        );
+
+    }
+
+}
+
+
+updateAuthColor("spf");
+updateAuthColor("dkim");
+updateAuthColor("dmarc");
+
+
+
+// ============================================================
+// THREAT INDICATORS
+// ============================================================
+
+const indicatorContainer =
+    document.getElementById(
+        "indicators"
+    );
+
+
+if (!indicators.length) {
+
+    indicatorContainer.innerHTML =
+        `
+        <div class="indicator safe">
+            ✓ No major indicators detected
+        </div>
+        `;
+
+}
+else {
+
+    indicators.forEach(
+        function(indicator) {
+
+            const div =
+                document.createElement(
+                    "div"
+                );
+
+
+            div.className =
+                "indicator";
+
+
+            div.textContent =
+                "⚠️ " +
+                (
+                    typeof indicator === "object"
+                        ? indicator.indicator ||
+                          indicator.description ||
+                          JSON.stringify(indicator)
+                        : indicator
+                );
+
+
+            indicatorContainer.appendChild(
+                div
             );
 
-            window.location.href = "index.html";
+        }
+    );
+
+}
+
+
+
+// ============================================================
+// NETWORK
+// ============================================================
+
+const network =
+    data.network || {};
+
+
+const ips =
+    network.ips || [];
+
+
+const firstIP =
+    ips.length
+        ? ips[0]
+        : "Unknown";
+
+
+const senderEmail =
+    email.from_email ||
+    email.from ||
+    "Unknown";
+
+
+const senderDomain =
+    senderEmail.includes("@")
+        ? senderEmail.split("@")[1]
+        : "Unknown";
+
+
+
+// ============================================================
+// EMAIL ROUTE
+// ============================================================
+
+const route =
+    document.getElementById(
+        "emailRoute"
+    );
+
+
+route.innerHTML = `
+
+    <div class="route-node">
+
+        📧
+
+        <strong>
+            Sender
+        </strong>
+
+        <span>
+            ${escapeHtml(senderEmail)}
+        </span>
+
+    </div>
+
+    <div class="arrow">
+        →
+    </div>
+
+    <div class="route-node">
+
+        🌐
+
+        <strong>
+            ${escapeHtml(senderDomain)}
+        </strong>
+
+    </div>
+
+    <div class="arrow">
+        →
+    </div>
+
+    <div class="route-node">
+
+        🖥️
+
+        <strong>
+            ${escapeHtml(firstIP)}
+        </strong>
+
+    </div>
+
+    <div class="arrow">
+        →
+    </div>
+
+    <div class="route-node">
+
+        📥
+
+        <strong>
+            Recipient
+        </strong>
+
+        <span>
+            ${escapeHtml(email.to || "Unknown")}
+        </span>
+
+    </div>
+
+`;
+
+
+
+// ============================================================
+// GEOLOCATION
+// ============================================================
+
+setText(
+    "ipAddress",
+    firstIP
+);
+
+
+const geo =
+    network.geolocation?.[0];
+
+
+if (geo) {
+
+    setText(
+        "country",
+        geo.country
+    );
+
+    setText(
+        "region",
+        geo.region
+    );
+
+    setText(
+        "city",
+        geo.city
+    );
+
+    setText(
+        "isp",
+        geo.isp
+    );
+
+    setText(
+        "organization",
+        geo.organization
+    );
+
+}
+
+
+
+// ============================================================
+// SIMPLE GRAPH
+// ============================================================
+
+setText(
+    "graphDomain",
+    "🌐 " + senderDomain
+);
+
+
+setText(
+    "graphIP",
+    "🖥️ " + firstIP
+);
+
+
+
+// ============================================================
+// DETECTED URLS
+// ============================================================
+
+const urlContainer =
+    document.getElementById(
+        "urls"
+    );
+
+
+if (!urls.length) {
+
+    urlContainer.innerHTML =
+        `
+        <p class="summary">
+            No URLs detected.
+        </p>
+        `;
+
+}
+else {
+
+    urls.forEach(
+        function(url) {
+
+            const div =
+                document.createElement(
+                    "div"
+                );
+
+
+            div.className =
+                "info-row";
+
+
+            div.innerHTML = `
+
+                <strong>
+                    URL:
+                </strong>
+
+                <span>
+                    ${escapeHtml(
+                        typeof url === "string"
+                            ? url
+                            : url.url || ""
+                    )}
+                </span>
+
+            `;
+
+
+            urlContainer.appendChild(
+                div
+            );
+
+        }
+    );
+
+}
+
+
+
+// ============================================================
+// SUSPICIOUS URLS
+// ============================================================
+
+const suspiciousUrls =
+    data.suspicious_urls || [];
+
+
+const suspiciousContainer =
+    document.getElementById(
+        "suspiciousUrls"
+    );
+
+
+if (!suspiciousUrls.length) {
+
+    suspiciousContainer.innerHTML =
+        `
+        <p class="summary">
+            No suspicious URLs detected.
+        </p>
+        `;
+
+}
+else {
+
+    suspiciousUrls.forEach(
+        function(item) {
+
+            const div =
+                document.createElement(
+                    "div"
+                );
+
+
+            div.className =
+                "indicator";
+
+
+            const reasons =
+                item.reasons || [];
+
+
+            div.innerHTML = `
+
+                🔗
+
+                <strong>
+                    ${escapeHtml(
+                        item.url
+                    )}
+                </strong>
+
+                <br>
+
+                Domain:
+
+                ${escapeHtml(
+                    item.domain
+                )}
+
+                <br>
+
+                Reason:
+
+                ${escapeHtml(
+                    reasons.join(", ")
+                )}
+
+            `;
+
+
+            suspiciousContainer.appendChild(
+                div
+            );
+
+        }
+    );
+
+}
+
+
+
+// ============================================================
+// RISK FACTORS
+// ============================================================
+
+const riskFactors =
+    data.risk_factors || [];
+
+
+const riskContainer =
+    document.getElementById(
+        "riskFactors"
+    );
+
+
+if (!riskFactors.length) {
+
+    riskContainer.innerHTML =
+        `
+        <p class="summary">
+            No additional risk factors.
+        </p>
+        `;
+
+}
+else {
+
+    riskFactors.forEach(
+        function(factor) {
+
+            const div =
+                document.createElement(
+                    "div"
+                );
+
+
+            div.className =
+                "auth-row";
+
+
+            div.innerHTML = `
+
+                <span>
+                    ${escapeHtml(
+                        factor.indicator
+                    )}
+                </span>
+
+                <strong>
+                    +${escapeHtml(
+                        factor.points
+                    )}
+                </strong>
+
+            `;
+
+
+            riskContainer.appendChild(
+                div
+            );
+
+        }
+    );
+
+}
+
+
+
+// ============================================================
+// AI SUMMARY
+// ============================================================
+
+let summary = "";
+
+
+if (
+    threatTypes.includes("Phishing") &&
+    threatTypes.includes("BEC")
+) {
+
+    summary =
+        "The analyzed email shows indicators associated with both phishing and Business Email Compromise. ";
+
+}
+else if (
+    threatTypes.includes("Phishing")
+) {
+
+    summary =
+        "The analyzed email shows indicators associated with phishing. ";
+
+}
+else if (
+    threatTypes.includes("BEC")
+) {
+
+    summary =
+        "The analyzed email shows indicators associated with Business Email Compromise. ";
+
+}
+else {
+
+    summary =
+        "The analyzed email does not show major known threat indicators. ";
+
+}
+
+
+if (indicators.length) {
+
+    summary +=
+        "The analysis identified "
+        + indicators.length
+        + " suspicious indicator(s). ";
+
+}
+
+
+if (
+    authentication.spf === "FAIL" ||
+    authentication.dkim === "FAIL" ||
+    authentication.dmarc === "FAIL"
+) {
+
+    summary +=
+        "One or more email authentication mechanisms failed. ";
+
+}
+
+
+if (suspiciousUrls.length) {
+
+    summary +=
+        "Suspicious URL characteristics were detected and should be investigated further. ";
+
+}
+
+
+if (ips.length) {
+
+    summary +=
+        "The email contains network infrastructure associated with IP address "
+        + ips.join(", ")
+        + ".";
+
+}
+
+
+setText(
+    "summary",
+    summary
+);
+
+
+
+// ============================================================
+// EVIDENCE
+// ============================================================
+
+const evidence =
+    data.evidence || {};
+
+
+setText(
+    "hash",
+    evidence.sha256
+);
+
+
+const integrity =
+    document.getElementById(
+        "integrity"
+    );
+
+
+if (
+    evidence.integrity_status
+) {
+
+    if (
+        evidence.integrity_status ===
+        "VERIFIED"
+    ) {
+
+        integrity.textContent =
+            "✓ Evidence Verified";
+
+    }
+    else {
+
+        integrity.textContent =
+            "⚠ Evidence Status: "
+            + evidence.integrity_status;
+
+    }
+
+}
+
+
+
+// ============================================================
+// P2 GRAPH VISUALIZATION
+// ============================================================
+
+function buildInvestigationGraph() {
+
+
+    const container =
+        document.getElementById(
+            "cy"
+        );
+
+
+    if (!container) {
+
+        return;
+
+    }
+
+
+    const elements = [];
+
+
+    // --------------------------------------------------------
+    // EMAIL NODE
+    // --------------------------------------------------------
+
+    elements.push({
+
+        data: {
+
+            id: "email",
+
+            label:
+                "📧 Email\n" +
+                (email.subject || "Analyzed Email")
 
         }
 
+    });
 
-        let data;
 
-        try {
 
-            data = JSON.parse(storedData);
+    // --------------------------------------------------------
+    // DOMAIN NODE
+    // --------------------------------------------------------
+
+    if (
+        senderDomain &&
+        senderDomain !== "Unknown"
+    ) {
+
+        elements.push({
+
+            data: {
+
+                id: "domain",
+
+                label:
+                    "🌐 Domain\n" +
+                    senderDomain
+
+            }
+
+        });
+
+
+        elements.push({
+
+            data: {
+
+                id:
+                    "email-domain",
+
+                source:
+                    "email",
+
+                target:
+                    "domain"
+
+            }
+
+        });
+
+    }
+
+
+
+    // --------------------------------------------------------
+    // IP NODES
+    // --------------------------------------------------------
+
+    ips
+        .slice(0, 5)
+        .forEach(
+            function(ip, index) {
+
+
+                const ipId =
+                    "ip-" + index;
+
+
+                elements.push({
+
+                    data: {
+
+                        id:
+                            ipId,
+
+                        label:
+                            "🖥️ IP\n" +
+                            ip
+
+                    }
+
+                });
+
+
+                if (
+                    senderDomain &&
+                    senderDomain !== "Unknown"
+                ) {
+
+                    elements.push({
+
+                        data: {
+
+                            id:
+                                "domain-" +
+                                ipId,
+
+                            source:
+                                "domain",
+
+                            target:
+                                ipId
+
+                        }
+
+                    });
+
+                }
+                else {
+
+                    elements.push({
+
+                        data: {
+
+                            id:
+                                "email-" +
+                                ipId,
+
+                            source:
+                                "email",
+
+                            target:
+                                ipId
+
+                        }
+
+                    });
+
+                }
+
+            }
+        );
+
+
+
+    // --------------------------------------------------------
+    // URL NODES
+    // --------------------------------------------------------
+
+    urls
+        .slice(0, 6)
+        .forEach(
+            function(url, index) {
+
+
+                const urlValue =
+                    typeof url === "string"
+                        ? url
+                        : url.url || "";
+
+
+                if (!urlValue) {
+
+                    return;
+
+                }
+
+
+                const urlId =
+                    "url-" + index;
+
+
+                elements.push({
+
+                    data: {
+
+                        id:
+                            urlId,
+
+                        label:
+                            "🔗 URL\n" +
+                            truncate(
+                                urlValue,
+                                28
+                            )
+
+                    }
+
+                });
+
+
+                elements.push({
+
+                    data: {
+
+                        id:
+                            "email-" +
+                            urlId,
+
+                        source:
+                            "email",
+
+                        target:
+                            urlId
+
+                    }
+
+                });
+
+            }
+        );
+
+
+
+    // --------------------------------------------------------
+    // THREAT NODE
+    // --------------------------------------------------------
+
+    if (
+        threatTypes.length
+    ) {
+
+
+        elements.push({
+
+            data: {
+
+                id:
+                    "threat",
+
+                label:
+                    "⚠️ Threat\n" +
+                    threatTypes.join(", ")
+
+            }
+
+        });
+
+
+        elements.push({
+
+            data: {
+
+                id:
+                    "email-threat",
+
+                source:
+                    "email",
+
+                target:
+                    "threat"
+
+            }
+
+        });
+
+    }
+
+
+
+    // --------------------------------------------------------
+    // CAMPAIGN NODE
+    // --------------------------------------------------------
+
+    elements.push({
+
+        data: {
+
+            id:
+                "campaign",
+
+            label:
+                "🎯 Possible\nCampaign"
 
         }
-        catch (error) {
 
-            console.error(
-                "Invalid analysis JSON:",
-                error
-            );
+    });
 
-            alert(
-                "Invalid analysis data."
-            );
 
-            window.location.href = "index.html";
+    if (
+        threatTypes.length ||
+        ips.length ||
+        suspiciousUrls.length
+    ) {
+
+        elements.push({
+
+            data: {
+
+                id:
+                    "threat-campaign",
+
+                source:
+                    threatTypes.length
+                        ? "threat"
+                        : "email",
+
+                target:
+                    "campaign"
+
+            }
+
+        });
+
+    }
+
+
+
+    // --------------------------------------------------------
+    // CREATE CYTOSCAPE
+    // --------------------------------------------------------
+
+    cytoscape({
+
+        container:
+            container,
+
+        elements:
+            elements,
+
+        layout: {
+
+            name:
+                "cose",
+
+            animate:
+                true,
+
+            padding:
+                40,
+
+            nodeRepulsion:
+                9000,
+
+            idealEdgeLength:
+                150
+
+        },
+
+        style: [
+
+            {
+
+                selector:
+                    "node",
+
+                style: {
+
+                    "label":
+                        "data(label)",
+
+                    "text-wrap":
+                        "wrap",
+
+                    "text-max-width":
+                        "130px",
+
+                    "text-valign":
+                        "center",
+
+                    "text-halign":
+                        "center",
+
+                    "font-size":
+                        "12px",
+
+                    "width":
+                        "75px",
+
+                    "height":
+                        "75px",
+
+                    "background-color":
+                        "#182033",
+
+                    "border-width":
+                        "2px",
+
+                    "border-color":
+                        "#4f46e5",
+
+                    "color":
+                        "#ffffff"
+
+                }
+
+            },
+
+
+            {
+
+                selector:
+                    "#email",
+
+                style: {
+
+                    "background-color":
+                        "#2563eb",
+
+                    "border-color":
+                        "#60a5fa",
+
+                    "width":
+                        "100px",
+
+                    "height":
+                        "100px"
+
+                }
+
+            },
+
+
+            {
+
+                selector:
+                    "#threat",
+
+                style: {
+
+                    "background-color":
+                        "#991b1b",
+
+                    "border-color":
+                        "#ef4444"
+
+                }
+
+            },
+
+
+            {
+
+                selector:
+                    "#campaign",
+
+                style: {
+
+                    "background-color":
+                        "#7c2d12",
+
+                    "border-color":
+                        "#f59e0b"
+
+                }
+
+            },
+
+
+            {
+
+                selector:
+                    "edge",
+
+                style: {
+
+                    "width":
+                        2,
+
+                    "line-color":
+                        "#64748b",
+
+                    "target-arrow-color":
+                        "#64748b",
+
+                    "target-arrow-shape":
+                        "triangle",
+
+                    "curve-style":
+                        "bezier"
+
+                }
+
+            }
+
+        ]
+
+    });
+
+}
+
+
+
+// ============================================================
+// TRUNCATE
+// ============================================================
+
+function truncate(
+    text,
+    maxLength
+) {
+
+    if (
+        text.length <= maxLength
+    ) {
+
+        return text;
+
+    }
+
+
+    return (
+        text.substring(
+            0,
+            maxLength
+        )
+        + "..."
+    );
+
+}
+
+
+
+// ============================================================
+// CAMPAIGN CORRELATION
+// ============================================================
+
+function buildCampaignCorrelation() {
+
+
+    const container =
+        document.getElementById(
+            "campaignCorrelation"
+        );
+
+
+    if (!container) {
+
+        return;
+
+    }
+
+
+    container.innerHTML = "";
+
+
+
+    const correlations = [];
+
+
+
+    // --------------------------------------------------------
+    // DOMAIN
+    // --------------------------------------------------------
+
+    if (
+        senderDomain !== "Unknown"
+    ) {
+
+        correlations.push({
+
+            type:
+                "Domain",
+
+            value:
+                senderDomain,
+
+            confidence:
+                "High",
+
+            reason:
+                "Sender email domain is directly associated with this investigation."
+
+        });
+
+    }
+
+
+
+    // --------------------------------------------------------
+    // IP
+    // --------------------------------------------------------
+
+    ips.forEach(
+        function(ip) {
+
+            correlations.push({
+
+                type:
+                    "IP Infrastructure",
+
+                value:
+                    ip,
+
+                confidence:
+                    "High",
+
+                reason:
+                    "IP address was extracted from the email transmission path."
+
+            });
 
         }
+    );
 
 
 
-        // ====================================================
-        // HELPER FUNCTION
-        // ====================================================
+    // --------------------------------------------------------
+    // SUSPICIOUS URL
+    // --------------------------------------------------------
 
-        function setText(id, value) {
-
-            const element =
-                document.getElementById(id);
-
-            if (!element) return;
-
-            element.textContent =
-                value !== undefined &&
-                value !== null &&
-                value !== ""
-                    ? value
-                    : "Not available";
-
-        }
-
-
-
-        // ====================================================
-        // CASE INFORMATION
-        // ====================================================
-
-        setText(
-            "caseId",
-            data.case_id
-        );
-
-
-
-        // ====================================================
-        // THREAT SCORE
-        // ====================================================
-
-        const riskScore =
-            Number(data.risk_score || 0);
-
-
-        setText(
-            "riskScore",
-            riskScore + "/100"
-        );
-
-
-        setText(
-            "classification",
-            data.classification
-        );
-
-
-        const scoreElement =
-            document.getElementById("riskScore");
-
-
-        if (riskScore >= 80) {
-
-            scoreElement.classList.add(
-                "danger"
-            );
-
-        }
-        else if (riskScore >= 60) {
-
-            scoreElement.classList.add(
-                "danger"
-            );
-
-        }
-        else if (riskScore >= 30) {
-
-            scoreElement.classList.add(
-                "warning"
-            );
-
-        }
-
-
-
-        // ====================================================
-        // THREAT TYPES
-        // ====================================================
-
-        const threatTypes =
-            data.threat_types || [];
-
-
-        setText(
-            "threatTypes",
-            threatTypes.join(" / ")
-        );
-
-
-
-        // ====================================================
-        // INDICATOR COUNT
-        // ====================================================
-
-        const indicators =
-            data.indicators || [];
-
-
-        setText(
-            "indicatorCount",
-            indicators.length
-        );
-
-
-
-        // ====================================================
-        // URL COUNT
-        // ====================================================
-
-        const urls =
-            data.urls || [];
-
-
-        setText(
-            "urlCount",
-            urls.length
-        );
-
-
-
-        // ====================================================
-        // EMAIL INFORMATION
-        // ====================================================
-
-        const email =
-            data.email || {};
-
-
-        setText(
-            "fromEmail",
-            email.from_email || email.from
-        );
-
-
-        setText(
-            "fromName",
-            email.from_name
-        );
-
-
-        setText(
-            "toEmail",
-            email.to
-        );
-
-
-        setText(
-            "replyTo",
-            email.reply_to
-        );
-
-
-        setText(
-            "subject",
-            email.subject
-        );
-
-
-        setText(
-            "messageId",
-            email.message_id
-        );
-
-
-        setText(
-            "returnPath",
-            email.return_path
-        );
-
-
-
-        // ====================================================
-        // AUTHENTICATION
-        // ====================================================
-
-        const authentication =
-            data.authentication || {};
-
-
-        setText(
-            "spf",
-            authentication.spf || "UNKNOWN"
-        );
-
-
-        setText(
-            "dkim",
-            authentication.dkim || "UNKNOWN"
-        );
-
-
-        setText(
-            "dmarc",
-            authentication.dmarc || "UNKNOWN"
-        );
-
-
-
-        // ====================================================
-        // AUTHENTICATION COLORS
-        // ====================================================
-
-        function updateAuthColor(id) {
-
-            const element =
-                document.getElementById(id);
-
-            if (!element) return;
-
-
-            const value =
-                element.textContent.toUpperCase();
-
-
-            element.classList.remove(
-                "fail"
-            );
-
+    suspiciousUrls.forEach(
+        function(item) {
 
             if (
-                value === "FAIL" ||
-                value === "SOFTFAIL"
+                item.domain
             ) {
 
-                element.classList.add(
-                    "fail"
-                );
+                correlations.push({
+
+                    type:
+                        "Suspicious Domain",
+
+                    value:
+                        item.domain,
+
+                    confidence:
+                        "Medium",
+
+                    reason:
+                        (
+                            item.reasons &&
+                            item.reasons.length
+                        )
+                            ? item.reasons.join(", ")
+                            : "Suspicious URL characteristics detected."
+
+                });
 
             }
 
         }
-
-
-        updateAuthColor("spf");
-        updateAuthColor("dkim");
-        updateAuthColor("dmarc");
+    );
 
 
 
-        // ====================================================
-        // THREAT INDICATORS
-        // ====================================================
+    // --------------------------------------------------------
+    // THREAT TYPE
+    // --------------------------------------------------------
 
-        const indicatorContainer =
-            document.getElementById(
-                "indicators"
-            );
+    threatTypes.forEach(
+        function(type) {
 
+            correlations.push({
 
-        if (indicators.length === 0) {
+                type:
+                    "Threat Pattern",
 
-            indicatorContainer.innerHTML =
-                "<div class='indicator'>✓ No major indicators detected</div>";
+                value:
+                    type,
 
-        }
-        else {
+                confidence:
+                    riskScore >= 60
+                        ? "High"
+                        : "Medium",
 
-            indicators.forEach(
-                function(indicator) {
+                reason:
+                    "Threat classification was identified by the email analysis engine."
 
-                    const div =
-                        document.createElement(
-                            "div"
-                        );
-
-                    div.className =
-                        "indicator";
-
-                    div.textContent =
-                        "⚠️ " + indicator;
-
-                    indicatorContainer.appendChild(
-                        div
-                    );
-
-                }
-            );
+            });
 
         }
+    );
 
 
 
-        // ====================================================
-        // EMAIL ROUTE
-        // ====================================================
+    // --------------------------------------------------------
+    // NO CORRELATIONS
+    // --------------------------------------------------------
 
-        const route =
-            document.getElementById(
-                "emailRoute"
-            );
+    if (
+        correlations.length === 0
+    ) {
 
+        container.innerHTML = `
 
-        const ips =
-            data.network?.ips || [];
+            <div class="campaign-empty">
 
-
-        const senderDomain =
-            email.from_email
-                ? email.from_email.split("@")[1]
-                : "Unknown";
-
-
-        const firstIP =
-            ips.length > 0
-                ? ips[0]
-                : "Unknown";
-
-
-        route.innerHTML = `
-
-            <div class="route-node">
-
-                📧
+                <div>
+                    🔍
+                </div>
 
                 <strong>
-                    Sender
+                    No campaign correlations found
                 </strong>
 
-                <span>
-                    ${escapeHtml(
-                        email.from_email || "Unknown"
-                    )}
-                </span>
-
-            </div>
-
-
-            <div class="arrow">
-                →
-            </div>
-
-
-            <div class="route-node">
-
-                🌐
-
-                <strong>
-                    Mail Server
-                </strong>
-
-            </div>
-
-
-            <div class="arrow">
-                →
-            </div>
-
-
-            <div class="route-node">
-
-                🖥️
-
-                <strong>
-                    ${escapeHtml(firstIP)}
-                </strong>
-
-            </div>
-
-
-            <div class="arrow">
-                →
-            </div>
-
-
-            <div class="route-node">
-
-                📥
-
-                <strong>
-                    Recipient
-                </strong>
-
-                <span>
-                    ${escapeHtml(
-                        email.to || "Unknown"
-                    )}
-                </span>
+                <p>
+                    More evidence is required to establish
+                    infrastructure relationships.
+                </p>
 
             </div>
 
         `;
 
+        return;
 
-
-        // ====================================================
-        // IP INFORMATION
-        // ====================================================
-
-        setText(
-            "ipAddress",
-            firstIP
-        );
-
-
-        const geo =
-            data.network?.geolocation?.[0];
-
-
-        if (geo) {
-
-            setText(
-                "country",
-                geo.country
-            );
-
-            setText(
-                "region",
-                geo.region
-            );
-
-            setText(
-                "city",
-                geo.city
-            );
-
-            setText(
-                "isp",
-                geo.isp
-            );
-
-            setText(
-                "organization",
-                geo.organization
-            );
-
-        }
+    }
 
 
 
-        // ====================================================
-        // GRAPH
-        // ====================================================
+    // --------------------------------------------------------
+    // RENDER CARDS
+    // --------------------------------------------------------
 
-        setText(
-            "graphDomain",
-            "🌐 " + senderDomain
-        );
+    correlations.forEach(
+        function(item) {
 
 
-        setText(
-            "graphIP",
-            "🖥️ " + firstIP
-        );
+            const card =
+                document.createElement(
+                    "div"
+                );
 
 
-
-        // ====================================================
-        // DETECTED URLS
-        // ====================================================
-
-        const urlContainer =
-            document.getElementById(
-                "urls"
-            );
+            card.className =
+                "campaign-card";
 
 
-        if (urls.length === 0) {
+            card.innerHTML = `
 
-            urlContainer.innerHTML =
-                "<p class='summary'>No URLs detected.</p>";
+                <div class="campaign-card-top">
 
-        }
-        else {
-
-            urls.forEach(
-                function(url) {
-
-                    const div =
-                        document.createElement(
-                            "div"
-                        );
-
-                    div.className =
-                        "info-row";
-
-                    div.innerHTML = `
-
-                        <strong>
-                            URL:
-                        </strong>
-
-                        <span>
-                            ${escapeHtml(url)}
-                        </span>
-
-                    `;
-
-                    urlContainer.appendChild(
-                        div
-                    );
-
-                }
-            );
-
-        }
-
-
-
-        // ====================================================
-        // SUSPICIOUS URLS
-        // ====================================================
-
-        const suspiciousUrls =
-            data.suspicious_urls || [];
-
-
-        const suspiciousContainer =
-            document.getElementById(
-                "suspiciousUrls"
-            );
-
-
-        if (suspiciousUrls.length === 0) {
-
-            suspiciousContainer.innerHTML =
-                "<p class='summary'>No suspicious URLs detected.</p>";
-
-        }
-        else {
-
-            suspiciousUrls.forEach(
-                function(item) {
-
-                    const div =
-                        document.createElement(
-                            "div"
-                        );
-
-                    div.className =
-                        "indicator";
-
-
-                    const reasons =
-                        item.reasons || [];
-
-
-                    div.innerHTML = `
-
-                        🔗
-
-                        <strong>
-                            ${escapeHtml(
-                                item.url
-                            )}
-                        </strong>
-
-                        <br>
-
-                        Domain:
-
+                    <span class="campaign-type">
                         ${escapeHtml(
-                            item.domain
+                            item.type
                         )}
+                    </span>
 
-                        <br>
-
-                        Reason:
-
+                    <span class="confidence">
                         ${escapeHtml(
-                            reasons.join(", ")
+                            item.confidence
                         )}
+                    </span>
 
-                    `;
+                </div>
 
 
-                    suspiciousContainer.appendChild(
-                        div
-                    );
+                <h3>
+                    ${escapeHtml(
+                        item.value
+                    )}
+                </h3>
+
+
+                <p>
+                    ${escapeHtml(
+                        item.reason
+                    )}
+                </p>
+
+            `;
+
+
+            container.appendChild(
+                card
+            );
+
+        }
+    );
+
+}
+
+
+
+// ============================================================
+// GENERATE REPORT
+// ============================================================
+
+async function generateReport() {
+
+
+    const emailFileInput =
+        document.getElementById(
+            "emailFile"
+        );
+
+
+    const generateReportBtn =
+        document.getElementById(
+            "generateReportBtn"
+        );
+
+
+    if (
+        !emailFileInput.files.length
+    ) {
+
+        emailFileInput.click();
+
+        return;
+
+    }
+
+
+    const file =
+        emailFileInput.files[0];
+
+
+    if (
+        !file.name
+            .toLowerCase()
+            .endsWith(".eml")
+    ) {
+
+        alert(
+            "Only .eml files are supported."
+        );
+
+        emailFileInput.value = "";
+
+        return;
+
+    }
+
+
+    try {
+
+
+        generateReportBtn.disabled =
+            true;
+
+
+        generateReportBtn.innerText =
+            "Generating Report...";
+
+
+        const formData =
+            new FormData();
+
+
+        formData.append(
+            "file",
+            file
+        );
+
+
+        const response =
+            await fetch(
+                "http://127.0.0.1:8000/analyze-email/report",
+                {
+
+                    method:
+                        "POST",
+
+                    body:
+                        formData
 
                 }
             );
 
-        }
+
+        if (!response.ok) {
 
 
-
-        // ====================================================
-        // RISK FACTORS
-        // ====================================================
-
-        const riskFactors =
-            data.risk_factors || [];
+            let errorMessage =
+                "Failed to generate report.";
 
 
-        const riskContainer =
-            document.getElementById(
-                "riskFactors"
-            );
+            try {
+
+                const errorData =
+                    await response.json();
 
 
-        if (riskFactors.length === 0) {
+                if (
+                    errorData.detail
+                ) {
 
-            riskContainer.innerHTML =
-                "<p class='summary'>No additional risk factors.</p>";
-
-        }
-        else {
-
-            riskFactors.forEach(
-                function(factor) {
-
-                    const div =
-                        document.createElement(
-                            "div"
-                        );
-
-                    div.className =
-                        "auth-row";
-
-
-                    div.innerHTML = `
-
-                        <span>
-                            ${escapeHtml(
-                                factor.indicator
-                            )}
-                        </span>
-
-                        <strong>
-                            +${factor.points}
-                        </strong>
-
-                    `;
-
-
-                    riskContainer.appendChild(
-                        div
-                    );
+                    errorMessage =
+                        errorData.detail;
 
                 }
-            );
 
-        }
+            }
+            catch (error) {
 
-
-
-        // ====================================================
-        // AI SUMMARY
-        // ====================================================
-
-        let summary = "";
-
-
-        if (
-            threatTypes.includes("Phishing") &&
-            threatTypes.includes("BEC")
-        ) {
-
-            summary =
-                "The analyzed email shows indicators associated with both phishing and Business Email Compromise. ";
-
-        }
-        else if (
-            threatTypes.includes("Phishing")
-        ) {
-
-            summary =
-                "The analyzed email shows indicators associated with phishing. ";
-
-        }
-        else if (
-            threatTypes.includes("BEC")
-        ) {
-
-            summary =
-                "The analyzed email shows indicators associated with Business Email Compromise. ";
-
-        }
-        else {
-
-            summary =
-                "The analyzed email does not show major known threat indicators. ";
-
-        }
-
-
-        if (
-            data.indicators &&
-            data.indicators.length > 0
-        ) {
-
-            summary +=
-                "The analysis identified " +
-                data.indicators.length +
-                " suspicious indicator(s). ";
-
-        }
-
-
-        if (
-            authentication.spf === "FAIL" ||
-            authentication.dkim === "FAIL" ||
-            authentication.dmarc === "FAIL"
-        ) {
-
-            summary +=
-                "One or more email authentication mechanisms failed. ";
-
-        }
-
-
-        if (suspiciousUrls.length > 0) {
-
-            summary +=
-                "Suspicious URL characteristics were detected and should be investigated further. ";
-
-        }
-
-
-        if (ips.length > 0) {
-
-            summary +=
-                "The email contains network infrastructure associated with IP address " +
-                ips.join(", ") +
-                ".";
-
-        }
-
-
-        setText(
-            "summary",
-            summary
-        );
-
-
-
-        // ====================================================
-        // EVIDENCE
-        // ====================================================
-
-        const evidence =
-            data.evidence || {};
-
-
-        setText(
-            "hash",
-            evidence.sha256
-        );
-
-
-        const integrity =
-            document.getElementById(
-                "integrity"
-            );
-
-
-        if (
-            evidence.integrity_status
-        ) {
-
-            integrity.textContent =
-                evidence.integrity_status ===
-                "VERIFIED"
-                    ? "✓ Evidence Verified"
-                    : "⚠ Evidence Status: " +
-                      evidence.integrity_status;
-
-        }
-
-
-
-        // ====================================================
-        // ESCAPE HTML
-        // ====================================================
-
-        function escapeHtml(value) {
-
-            if (
-                value === undefined ||
-                value === null
-            ) {
-
-                return "";
+                console.error(
+                    error
+                );
 
             }
 
 
-            return String(value)
-                .replace(
-                    /&/g,
-                    "&amp;"
-                )
-                .replace(
-                    /</g,
-                    "&lt;"
-                )
-                .replace(
-                    />/g,
-                    "&gt;"
-                )
-                .replace(
-                    /"/g,
-                    "&quot;"
-                )
-                .replace(
-                    /'/g,
-                    "&#039;"
-                );
-
-        }
-
-
-
-        // ====================================================
-        // GENERATE REPORT
-        // ====================================================
-
-        function generateReport() {
-
-            alert(
-                "Forensic report generation will be added next."
+            throw new Error(
+                errorMessage
             );
 
         }
 
 
-    </script>
+        const blob =
+            await response.blob();
+
+
+        if (
+            !blob ||
+            blob.size === 0
+        ) {
+
+            throw new Error(
+                "Backend returned an empty PDF."
+            );
+
+        }
+
+
+        const downloadUrl =
+            window.URL.createObjectURL(
+                blob
+            );
+
+
+        const link =
+            document.createElement(
+                "a"
+            );
+
+
+        link.href =
+            downloadUrl;
+
+
+        let filename =
+            "EmailGuard_Forensic_Report.pdf";
+
+
+        const disposition =
+            response.headers.get(
+                "Content-Disposition"
+            );
+
+
+        if (disposition) {
+
+
+            const match =
+                disposition.match(
+                    /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i
+                );
+
+
+            if (
+                match &&
+                match[1]
+            ) {
+
+                filename =
+                    decodeURIComponent(
+                        match[1]
+                    );
+
+            }
+
+        }
+
+
+        link.download =
+            filename;
+
+
+        document.body.appendChild(
+            link
+        );
+
+
+        link.click();
+
+
+        link.remove();
+
+
+        setTimeout(
+            function () {
+
+                window.URL.revokeObjectURL(
+                    downloadUrl
+                );
+
+            },
+            1000
+        );
+
+
+        alert(
+            "Forensic report generated successfully!"
+        );
+
+
+    }
+    catch (error) {
+
+        console.error(
+            "Report generation error:",
+            error
+        );
+
+
+        alert(
+            "Report generation failed:\n\n"
+            + error.message
+        );
+
+    }
+    finally {
+
+        generateReportBtn.disabled =
+            false;
+
+
+        generateReportBtn.innerText =
+            "Generate Report";
+
+    }
+
+}
+
+
+
+// ============================================================
+// FILE INPUT
+// ============================================================
+
+document
+    .getElementById(
+        "emailFile"
+    )
+    .addEventListener(
+        "change",
+        function () {
+
+
+            if (
+                !this.files.length
+            ) {
+
+                return;
+
+            }
+
+
+            const file =
+                this.files[0];
+
+
+            if (
+                !file.name
+                    .toLowerCase()
+                    .endsWith(".eml")
+            ) {
+
+                alert(
+                    "Please select a valid .eml file."
+                );
+
+
+                this.value = "";
+
+            }
+
+        }
+    );
+
+
+
+// ============================================================
+// BUILD P2 FEATURES
+// ============================================================
+
+buildInvestigationGraph();
+
+buildCampaignCorrelation();
+
+
+</script>
 
 
 </body>

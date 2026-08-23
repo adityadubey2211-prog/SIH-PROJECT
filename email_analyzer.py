@@ -2,1406 +2,860 @@ from email import policy
 from email.parser import BytesParser
 from email.utils import parseaddr
 from urllib.parse import urlparse
-from urllib.request import Request, urlopen
-
+from datetime import datetime
 import hashlib
-import ipaddress
-import json
 import re
-
-from datetime import datetime, timezone
-
-
-# ============================================================
-# EMAIL PARSER
-# ============================================================
-
-def parse_email(file_data):
-    """
-    Parse raw .eml bytes into an EmailMessage object.
-    """
-
-    return BytesParser(
-        policy=policy.default
-    ).parsebytes(file_data)
+import ipaddress
 
 
 # ============================================================
-# HEADER ANALYSIS
+# HELPERS
 # ============================================================
 
-def analyze_headers(email):
+def safe_text(value):
+    if value is None:
+        return ""
+
+    if isinstance(value, bytes):
+        try:
+            return value.decode("utf-8", errors="replace")
+        except Exception:
+            return str(value)
+
+    return str(value)
+
+
+def get_email_body(message):
     """
-    Extract important email headers.
-    """
-
-    sender = email.get(
-        "From",
-        "Unknown"
-    )
-
-    recipient = email.get(
-        "To",
-        "Unknown"
-    )
-
-    reply_to = email.get(
-        "Reply-To",
-        "Not available"
-    )
-
-    subject = email.get(
-        "Subject",
-        "No subject"
-    )
-
-    message_id = email.get(
-        "Message-ID",
-        "Not available"
-    )
-
-    return_path = email.get(
-        "Return-Path",
-        "Not available"
-    )
-
-    received_headers = email.get_all(
-        "Received",
-        []
-    )
-
-    sender_name, sender_email = parseaddr(
-        sender
-    )
-
-    reply_name, reply_email = parseaddr(
-        reply_to
-    )
-
-    return {
-
-        "from": sender,
-
-        "from_name": sender_name,
-
-        "from_email": sender_email,
-
-        "to": recipient,
-
-        "reply_to": reply_to,
-
-        "reply_to_email": reply_email,
-
-        "subject": subject,
-
-        "message_id": message_id,
-
-        "return_path": return_path,
-
-        "received_headers": received_headers
-    }
-
-
-# ============================================================
-# BODY EXTRACTION
-# ============================================================
-
-def extract_body(email):
-    """
-    Extract readable text from the email.
+    Extract plain text / HTML body from an email.
     """
 
-    plain_text = []
-    html_text = []
+    plain_parts = []
+    html_parts = []
 
-    if email.is_multipart():
+    if message.is_multipart():
 
-        for part in email.walk():
+        for part in message.walk():
 
-            content_type = (
-                part.get_content_type()
-            )
+            content_type = part.get_content_type()
+            disposition = str(
+                part.get("Content-Disposition", "")
+            ).lower()
 
-            disposition = (
-                part.get_content_disposition()
-            )
-
-            # Ignore attachments
-
-            if disposition == "attachment":
+            if "attachment" in disposition:
                 continue
 
             try:
-
                 content = part.get_content()
-
             except Exception:
+                try:
+                    payload = part.get_payload(
+                        decode=True
+                    )
 
-                continue
+                    content = safe_text(payload)
 
-            if not isinstance(
-                content,
-                str
-            ):
-
-                continue
+                except Exception:
+                    continue
 
             if content_type == "text/plain":
-
-                plain_text.append(
-                    content
+                plain_parts.append(
+                    safe_text(content)
                 )
 
             elif content_type == "text/html":
-
-                html_text.append(
-                    content
+                html_parts.append(
+                    safe_text(content)
                 )
 
     else:
 
         try:
+            content = message.get_content()
+        except Exception:
+            content = safe_text(
+                message.get_payload(
+                    decode=True
+                )
+            )
 
-            content = email.get_content()
+        if message.get_content_type() == "text/html":
+            html_parts.append(
+                safe_text(content)
+            )
+        else:
+            plain_parts.append(
+                safe_text(content)
+            )
 
-            if isinstance(
-                content,
-                str
-            ):
+    if plain_parts:
+        return "\n".join(plain_parts)
 
-                if email.get_content_type() == "text/html":
+    if html_parts:
+        return "\n".join(html_parts)
 
-                    html_text.append(
-                        content
-                    )
+    return ""
 
-                else:
 
-                    plain_text.append(
-                        content
-                    )
+def extract_ips(text):
+    """
+    Extract IPv4 and IPv6 addresses.
+    """
+
+    found = []
+
+    # IPv4
+    ipv4_pattern = r"\b(?:\d{1,3}\.){3}\d{1,3}\b"
+
+    for match in re.findall(
+        ipv4_pattern,
+        text
+    ):
+
+        try:
+
+            ipaddress.ip_address(match)
+
+            if match not in found:
+                found.append(match)
+
+        except ValueError:
+            pass
+
+    # IPv6
+    ipv6_pattern = r"\b(?:[0-9a-fA-F]{1,4}:){2,7}[0-9a-fA-F]{1,4}\b"
+
+    for match in re.findall(
+        ipv6_pattern,
+        text
+    ):
+
+        try:
+
+            ipaddress.ip_address(match)
+
+            if match not in found:
+                found.append(match)
+
+        except ValueError:
+            pass
+
+    return found
+
+
+def extract_urls(text):
+    """
+    Extract HTTP/HTTPS URLs.
+    """
+
+    pattern = r'https?://[^\s<>"\'\]\)]+'
+
+    urls = re.findall(
+        pattern,
+        text,
+        flags=re.IGNORECASE
+    )
+
+    cleaned = []
+
+    for url in urls:
+
+        url = url.rstrip(
+            ".,;:!?)]}>\"'"
+        )
+
+        if url not in cleaned:
+            cleaned.append(url)
+
+    return cleaned
+
+
+def get_domain(url):
+
+    try:
+
+        parsed = urlparse(url)
+
+        return parsed.netloc.lower()
+
+    except Exception:
+
+        return ""
+
+
+def analyze_url(url):
+    """
+    Basic suspicious URL detection.
+    """
+
+    reasons = []
+
+    try:
+
+        parsed = urlparse(url)
+
+        domain = parsed.netloc.lower()
+
+        path = parsed.path.lower()
+
+        full_url = url.lower()
+
+        # ----------------------------------------------------
+        # IP based URL
+        # ----------------------------------------------------
+
+        hostname = parsed.hostname
+
+        if hostname:
+
+            try:
+
+                ipaddress.ip_address(
+                    hostname
+                )
+
+                reasons.append(
+                    "URL uses an IP address instead of a domain name"
+                )
+
+            except ValueError:
+                pass
+
+        # ----------------------------------------------------
+        # Suspicious keywords
+        # ----------------------------------------------------
+
+        suspicious_words = [
+            "login",
+            "verify",
+            "verification",
+            "account",
+            "secure",
+            "security",
+            "password",
+            "update",
+            "confirm",
+            "signin",
+            "wallet",
+            "payment",
+            "invoice",
+            "bank"
+        ]
+
+        matched_words = []
+
+        for word in suspicious_words:
+
+            if word in full_url:
+
+                matched_words.append(word)
+
+        if matched_words:
+
+            reasons.append(
+                "Contains security/account related keywords: "
+                + ", ".join(matched_words)
+            )
+
+        # ----------------------------------------------------
+        # URL encoding
+        # ----------------------------------------------------
+
+        if "%" in url:
+
+            reasons.append(
+                "URL contains encoded characters"
+            )
+
+        # ----------------------------------------------------
+        # Excessive subdomains
+        # ----------------------------------------------------
+
+        if domain.count(".") >= 3:
+
+            reasons.append(
+                "Domain contains an unusually high number of subdomains"
+            )
+
+        # ----------------------------------------------------
+        # Suspicious TLDs
+        # ----------------------------------------------------
+
+        suspicious_tlds = [
+            ".xyz",
+            ".top",
+            ".click",
+            ".tk",
+            ".ml",
+            ".ga",
+            ".cf",
+            ".gq"
+        ]
+
+        if any(
+            domain.endswith(tld)
+            for tld in suspicious_tlds
+        ):
+
+            reasons.append(
+                "Domain uses a commonly abused top-level domain"
+            )
+
+        # ----------------------------------------------------
+        # Long URL
+        # ----------------------------------------------------
+
+        if len(url) > 150:
+
+            reasons.append(
+                "URL is unusually long"
+            )
+
+    except Exception:
+
+        reasons.append(
+            "URL parsing failed"
+        )
+
+    return {
+        "url": url,
+        "domain": domain,
+        "reasons": reasons,
+        "suspicious": len(reasons) > 0
+    }
+
+
+def extract_received_headers(message):
+
+    headers = []
+
+    for value in message.get_all(
+        "Received",
+        []
+    ):
+
+        headers.append(
+            safe_text(value)
+        )
+
+    return headers
+
+
+def parse_authentication(message):
+
+    result = {
+        "spf": "UNKNOWN",
+        "dkim": "UNKNOWN",
+        "dmarc": "UNKNOWN"
+    }
+
+    # Authentication-Results
+    auth_headers = message.get_all(
+        "Authentication-Results",
+        []
+    )
+
+    combined = " ".join(
+        safe_text(x)
+        for x in auth_headers
+    ).lower()
+
+    # SPF
+    if "spf=pass" in combined:
+        result["spf"] = "PASS"
+
+    elif "spf=fail" in combined:
+        result["spf"] = "FAIL"
+
+    elif "spf=softfail" in combined:
+        result["spf"] = "SOFTFAIL"
+
+    elif "spf=neutral" in combined:
+        result["spf"] = "NEUTRAL"
+
+    # DKIM
+    if "dkim=pass" in combined:
+        result["dkim"] = "PASS"
+
+    elif "dkim=fail" in combined:
+        result["dkim"] = "FAIL"
+
+    # DMARC
+    if "dmarc=pass" in combined:
+        result["dmarc"] = "PASS"
+
+    elif "dmarc=fail" in combined:
+        result["dmarc"] = "FAIL"
+
+    return result
+
+
+def get_geolocation_placeholder(ips):
+
+    """
+    Keeps the structure ready for an IP geolocation API.
+
+    Actual external API lookup can be added later.
+    """
+
+    locations = []
+
+    for ip in ips:
+
+        try:
+
+            ip_obj = ipaddress.ip_address(ip)
+
+            # Private/local IP
+            if ip_obj.is_private:
+
+                locations.append({
+                    "ip": ip,
+                    "country": "Private Network",
+                    "region": "N/A",
+                    "city": "N/A",
+                    "isp": "Private Network",
+                    "organization": "Private Network",
+                    "latitude": "N/A",
+                    "longitude": "N/A",
+                    "status": "PRIVATE_IP"
+                })
+
+            else:
+
+                locations.append({
+                    "ip": ip,
+                    "country": "Pending API",
+                    "region": "Pending API",
+                    "city": "Pending API",
+                    "isp": "Pending API",
+                    "organization": "Pending API",
+                    "latitude": "Pending API",
+                    "longitude": "Pending API",
+                    "status": "PENDING_API"
+                })
 
         except Exception:
 
             pass
 
-
-    # Prefer plain text
-
-    if plain_text:
-
-        return "\n".join(
-            plain_text
-        )
-
-
-    # Basic HTML cleanup
-
-    if html_text:
-
-        html = "\n".join(
-            html_text
-        )
-
-        html = re.sub(
-            r"<script.*?>.*?</script>",
-            " ",
-            html,
-            flags=re.I | re.S
-        )
-
-        html = re.sub(
-            r"<style.*?>.*?</style>",
-            " ",
-            html,
-            flags=re.I | re.S
-        )
-
-        html = re.sub(
-            r"<[^>]+>",
-            " ",
-            html
-        )
-
-        html = re.sub(
-            r"\s+",
-            " ",
-            html
-        )
-
-        return html.strip()
-
-
-    return ""
+    return locations
 
 
 # ============================================================
-# IP EXTRACTION
+# MAIN ANALYZER
 # ============================================================
 
-def extract_ips(text):
-    """
-    Extract globally routable IPv4 addresses.
-    Private, loopback and reserved IPs are ignored.
-    """
-
-    if not text:
-
-        return []
-
-
-    ip_pattern = (
-        r"\b(?:\d{1,3}\.){3}\d{1,3}\b"
-    )
-
-
-    candidates = re.findall(
-        ip_pattern,
-        text
-    )
-
-
-    valid_ips = []
-
-
-    for ip in candidates:
-
-        try:
-
-            address = ipaddress.ip_address(
-                ip
-            )
-
-
-            if address.version != 4:
-                continue
-
-
-            # Only public/global IPs
-
-            if not address.is_global:
-                continue
-
-
-            valid_ips.append(
-                ip
-            )
-
-
-        except ValueError:
-
-            continue
-
-
-    return list(
-        dict.fromkeys(
-            valid_ips
-        )
-    )
-
-
-# ============================================================
-# IP GEOLOCATION
-# ============================================================
-
-def get_ip_geolocation(ip):
-    """
-    Get basic geolocation information for a public IP.
-
-    Uses ipwho.is for prototype/demo purposes.
-    """
-
-    empty_result = {
-
-        "ip": ip,
-
-        "country": "Unknown",
-
-        "region": "Unknown",
-
-        "city": "Unknown",
-
-        "isp": "Unknown",
-
-        "organization": "Unknown",
-
-        "latitude": None,
-
-        "longitude": None,
-
-        "status": "FAILED",
-
-        "source": "ipwho.is"
-    }
-
-
-    if not ip:
-
-        return empty_result
-
+def analyze_email(file_data):
 
     # --------------------------------------------------------
-    # Do not query private/reserved IPs
+    # HASH
     # --------------------------------------------------------
 
-    try:
-
-        address = ipaddress.ip_address(
-            ip
-        )
-
-        if not address.is_global:
-
-            empty_result["status"] = (
-                "NON_GLOBAL_IP"
-            )
-
-            return empty_result
-
-    except ValueError:
-
-        return empty_result
-
+    sha256 = hashlib.sha256(
+        file_data
+    ).hexdigest()
 
     # --------------------------------------------------------
-    # API request
+    # PARSE EMAIL
     # --------------------------------------------------------
 
-    try:
-
-        url = (
-            "https://ipwho.is/"
-            + ip
-        )
-
-
-        request = Request(
-            url,
-            headers={
-                "User-Agent":
-                    "EmailGuard-AI/1.0"
-            }
-        )
-
-
-        response = urlopen(
-            request,
-            timeout=8
-        )
-
-
-        raw_data = response.read()
-
-
-        data = json.loads(
-            raw_data.decode(
-                "utf-8"
-            )
-        )
-
-
-        if not data.get(
-            "success",
-            False
-        ):
-
-            result = dict(
-                empty_result
-            )
-
-            result["error"] = (
-                data.get(
-                    "message",
-                    "Geolocation lookup failed"
-                )
-            )
-
-            return result
-
-
-        connection = data.get(
-            "connection",
-            {}
-        )
-
-
-        return {
-
-            "ip": ip,
-
-            "country": data.get(
-                "country",
-                "Unknown"
-            ),
-
-            "region": data.get(
-                "region",
-                "Unknown"
-            ),
-
-            "city": data.get(
-                "city",
-                "Unknown"
-            ),
-
-            "isp": connection.get(
-                "isp",
-                "Unknown"
-            ),
-
-            "organization": connection.get(
-                "org",
-                "Unknown"
-            ),
-
-            "latitude": data.get(
-                "latitude"
-            ),
-
-            "longitude": data.get(
-                "longitude"
-            ),
-
-            "status": "SUCCESS",
-
-            "source": "ipwho.is"
-        }
-
-
-    except Exception as e:
-
-        result = dict(
-            empty_result
-        )
-
-        result["error"] = str(e)
-
-        return result
-
-
-# ============================================================
-# URL EXTRACTION
-# ============================================================
-
-def extract_urls(text):
-    """
-    Extract HTTP/HTTPS URLs from email body.
-    """
-
-    if not text:
-
-        return []
-
-
-    url_pattern = (
-        r"https?://[^\s<>\"']+"
+    message = BytesParser(
+        policy=policy.default
+    ).parsebytes(
+        file_data
     )
 
+    # --------------------------------------------------------
+    # BASIC HEADERS
+    # --------------------------------------------------------
 
-    urls = re.findall(
-        url_pattern,
-        text,
-        flags=re.IGNORECASE
+    raw_from = safe_text(
+        message.get(
+            "From",
+            ""
+        )
     )
 
+    raw_to = safe_text(
+        message.get(
+            "To",
+            ""
+        )
+    )
 
-    cleaned_urls = []
+    raw_reply_to = safe_text(
+        message.get(
+            "Reply-To",
+            ""
+        )
+    )
 
+    return_path = safe_text(
+        message.get(
+            "Return-Path",
+            ""
+        )
+    )
+
+    subject = safe_text(
+        message.get(
+            "Subject",
+            ""
+        )
+    )
+
+    message_id = safe_text(
+        message.get(
+            "Message-ID",
+            ""
+        )
+    )
+
+    # --------------------------------------------------------
+    # PARSE ADDRESSES
+    # --------------------------------------------------------
+
+    from_name, from_email = parseaddr(
+        raw_from
+    )
+
+    reply_name, reply_email = parseaddr(
+        raw_reply_to
+    )
+
+    # --------------------------------------------------------
+    # BODY
+    # --------------------------------------------------------
+
+    body = get_email_body(
+        message
+    )
+
+    # --------------------------------------------------------
+    # URLS
+    # --------------------------------------------------------
+
+    urls = extract_urls(
+        body
+        + "\n"
+        + safe_text(
+            message
+        )
+    )
+
+    url_results = []
 
     for url in urls:
 
-        # Remove common punctuation
-
-        url = url.rstrip(
-            ".,;:!?)]}>"
+        url_results.append(
+            analyze_url(url)
         )
 
-
-        if url not in cleaned_urls:
-
-            cleaned_urls.append(
-                url
-            )
-
-
-    return cleaned_urls
-
-
-# ============================================================
-# DOMAIN EXTRACTION
-# ============================================================
-
-def extract_domain(email_address):
-
-    """
-    Extract domain from an email address.
-    """
-
-    if not email_address:
-
-        return ""
-
-
-    _, address = parseaddr(
-        email_address
-    )
-
-
-    if "@" not in address:
-
-        return ""
-
-
-    return (
-        address
-        .split("@")[-1]
-        .lower()
-        .strip()
-    )
-
-
-# ============================================================
-# EMAIL AUTHENTICATION
-# ============================================================
-
-def analyze_authentication(email):
-    """
-    Analyze SPF, DKIM and DMARC from
-    Authentication-Results headers.
-    """
-
-    auth_headers = email.get_all(
-        "Authentication-Results",
-        []
-    )
-
-
-    auth_header = " ".join(
-        str(x)
-        for x in auth_headers
-    ).lower()
-
-
-    spf = "UNKNOWN"
-    dkim = "UNKNOWN"
-    dmarc = "UNKNOWN"
-
-
-    # ========================================================
-    # SPF
-    # ========================================================
-
-    if re.search(
-        r"\bspf\s*=\s*pass\b",
-        auth_header
-    ):
-
-        spf = "PASS"
-
-    elif re.search(
-        r"\bspf\s*=\s*fail\b",
-        auth_header
-    ):
-
-        spf = "FAIL"
-
-    elif re.search(
-        r"\bspf\s*=\s*softfail\b",
-        auth_header
-    ):
-
-        spf = "SOFTFAIL"
-
-    elif re.search(
-        r"\bspf\s*=\s*neutral\b",
-        auth_header
-    ):
-
-        spf = "NEUTRAL"
-
-
-    # ========================================================
-    # DKIM
-    # ========================================================
-
-    if re.search(
-        r"\bdkim\s*=\s*pass\b",
-        auth_header
-    ):
-
-        dkim = "PASS"
-
-    elif re.search(
-        r"\bdkim\s*=\s*fail\b",
-        auth_header
-    ):
-
-        dkim = "FAIL"
-
-    elif re.search(
-        r"\bdkim\s*=\s*neutral\b",
-        auth_header
-    ):
-
-        dkim = "NEUTRAL"
-
-
-    # ========================================================
-    # DMARC
-    # ========================================================
-
-    if re.search(
-        r"\bdmarc\s*=\s*pass\b",
-        auth_header
-    ):
-
-        dmarc = "PASS"
-
-    elif re.search(
-        r"\bdmarc\s*=\s*fail\b",
-        auth_header
-    ):
-
-        dmarc = "FAIL"
-
-    elif re.search(
-        r"\bdmarc\s*=\s*bestguesspass\b",
-        auth_header
-    ):
-
-        dmarc = "PASS"
-
-
-    return {
-
-        "spf": spf,
-
-        "dkim": dkim,
-
-        "dmarc": dmarc
-    }
-
-
-# ============================================================
-# LOOKALIKE DOMAIN DETECTION
-# ============================================================
-
-def detect_lookalike_domain(sender_domain):
-
-    """
-    Detect common impersonation/lookalike patterns.
-    """
-
-    if not sender_domain:
-
-        return False
-
-
-    domain = sender_domain.lower()
-
-
-    lookalike_patterns = [
-
-        "micros0ft",
-
-        "paypa1",
-
-        "g00gle",
-
-        "faceb00k",
-
-        "amaz0n",
-
-        "apple-support",
-
-        "microsoft-support",
-
-        "secure-payment",
-
-        "account-verify",
-
-        "login-security"
+    suspicious_urls = [
+        item
+        for item in url_results
+        if item["suspicious"]
     ]
 
-
-    for pattern in lookalike_patterns:
-
-        if pattern in domain:
-
-            return True
-
-
-    return False
-
-
-# ============================================================
-# SUSPICIOUS URL DETECTION
-# ============================================================
-
-def analyze_urls(urls):
-
-    """
-    Analyze extracted URLs for suspicious characteristics.
-    """
-
-    suspicious_urls = []
-
-
-    suspicious_words = [
-
-        "login",
-
-        "verify",
-
-        "secure",
-
-        "account",
-
-        "update",
-
-        "payment",
-
-        "invoice",
-
-        "password",
-
-        "credential",
-
-        "signin",
-
-        "confirm"
-    ]
-
-
-    for url in urls:
-
-        try:
-
-            parsed = urlparse(
-                url
-            )
-
-
-            domain = (
-                parsed.hostname
-                or ""
-            ).lower()
-
-
-            reasons = []
-
-
-            # ------------------------------------------------
-            # URL uses IP address
-            # ------------------------------------------------
-
-            try:
-
-                ipaddress.ip_address(
-                    domain
-                )
-
-                reasons.append(
-                    "URL uses IP address"
-                )
-
-            except ValueError:
-
-                pass
-
-
-            # ------------------------------------------------
-            # Suspicious keywords
-            # ------------------------------------------------
-
-            for word in suspicious_words:
-
-                if word in url.lower():
-
-                    reasons.append(
-                        "Suspicious keyword: "
-                        + word
-                    )
-
-                    break
-
-
-            # ------------------------------------------------
-            # Long URL
-            # ------------------------------------------------
-
-            if len(url) > 150:
-
-                reasons.append(
-                    "Unusually long URL"
-                )
-
-
-            # ------------------------------------------------
-            # HTTP instead of HTTPS
-            # ------------------------------------------------
-
-            if parsed.scheme.lower() == "http":
-
-                reasons.append(
-                    "URL does not use HTTPS"
-                )
-
-
-            # ------------------------------------------------
-            # URL contains @
-            # ------------------------------------------------
-
-            if "@" in parsed.netloc:
-
-                reasons.append(
-                    "URL contains @ character"
-                )
-
-
-            # ------------------------------------------------
-            # Suspicious encoded content
-            # ------------------------------------------------
-
-            if "%" in url:
-
-                reasons.append(
-                    "URL contains encoded characters"
-                )
-
-
-            if reasons:
-
-                suspicious_urls.append({
-
-                    "url": url,
-
-                    "domain": domain,
-
-                    "reasons": list(
-                        dict.fromkeys(
-                            reasons
-                        )
-                    )
-                })
-
-
-        except Exception:
-
-            continue
-
-
-    return suspicious_urls
-
-
-# ============================================================
-# THREAT DETECTION
-# ============================================================
-
-def detect_threats(
-    email,
-    body,
-    urls,
-    authentication
-):
-
-    """
-    Rule-based phishing / BEC detection.
-    """
-
-    indicators = []
-
-    risk_factors = []
-
-    threat_types = []
+    # --------------------------------------------------------
+    # IPS
+    # --------------------------------------------------------
+
+    received_headers = extract_received_headers(
+        message
+    )
+
+    header_text = "\n".join(
+        received_headers
+    )
+
+    ips = extract_ips(
+        header_text
+        + "\n"
+        + safe_text(message)
+    )
+
+    # --------------------------------------------------------
+    # AUTHENTICATION
+    # --------------------------------------------------------
+
+    authentication = parse_authentication(
+        message
+    )
+
+    # --------------------------------------------------------
+    # RISK ENGINE
+    # --------------------------------------------------------
 
     risk_score = 0
 
+    risk_factors = []
 
-    headers = analyze_headers(
-        email
-    )
+    indicators = []
 
+    threat_types = []
 
-    sender = headers[
-        "from"
-    ]
+    # --------------------------------------------------------
+    # SPF
+    # --------------------------------------------------------
 
-    reply_to = headers[
-        "reply_to"
-    ]
+    if authentication["spf"] == "FAIL":
 
-    subject = headers[
-        "subject"
-    ]
-
-
-    sender_domain = extract_domain(
-        sender
-    )
-
-    reply_domain = extract_domain(
-        reply_to
-    )
-
-
-    text = (
-        subject
-        + " "
-        + body
-    ).lower()
-
-
-    # ========================================================
-    # REPLY-TO MISMATCH
-    # ========================================================
-
-    if (
-        sender_domain
-        and reply_domain
-        and sender_domain != reply_domain
-    ):
-
-        indicators.append(
-            "Reply-To domain mismatch"
-        )
-
+        risk_score += 25
 
         risk_factors.append({
-
-            "indicator":
-                "Reply-To mismatch",
-
-            "points":
-                15
+            "indicator": "SPF authentication failed",
+            "points": 25
         })
-
-
-        risk_score += 15
-
-
-        if "BEC" not in threat_types:
-
-            threat_types.append(
-                "BEC"
-            )
-
-
-    # ========================================================
-    # URGENCY / SOCIAL ENGINEERING
-    # ========================================================
-
-    urgency_words = [
-
-        "urgent",
-
-        "immediately",
-
-        "action required",
-
-        "as soon as possible",
-
-        "important",
-
-        "verify now",
-
-        "account suspended",
-
-        "act now",
-
-        "final warning",
-
-        "within 24 hours",
-
-        "within 48 hours"
-    ]
-
-
-    found_urgency = any(
-        word in text
-        for word in urgency_words
-    )
-
-
-    if found_urgency:
 
         indicators.append(
-            "Urgency or social engineering language"
+            "SPF authentication failure detected"
         )
 
+    # --------------------------------------------------------
+    # DKIM
+    # --------------------------------------------------------
+
+    if authentication["dkim"] == "FAIL":
+
+        risk_score += 20
 
         risk_factors.append({
-
-            "indicator":
-                "Urgency / social engineering",
-
-            "points":
-                10
+            "indicator": "DKIM authentication failed",
+            "points": 20
         })
-
-
-        risk_score += 10
-
-
-    # ========================================================
-    # FINANCIAL REQUEST
-    # ========================================================
-
-    financial_words = [
-
-        "payment",
-
-        "invoice",
-
-        "bank account",
-
-        "wire transfer",
-
-        "transfer money",
-
-        "refund",
-
-        "bitcoin",
-
-        "crypto",
-
-        "gift card",
-
-        "bank details",
-
-        "account number",
-
-        "upi",
-
-        "transaction"
-    ]
-
-
-    found_financial = any(
-        word in text
-        for word in financial_words
-    )
-
-
-    if found_financial:
 
         indicators.append(
-            "Potential financial request"
+            "DKIM authentication failure detected"
         )
 
+    # --------------------------------------------------------
+    # DMARC
+    # --------------------------------------------------------
+
+    if authentication["dmarc"] == "FAIL":
+
+        risk_score += 25
 
         risk_factors.append({
-
-            "indicator":
-                "Financial request",
-
-            "points":
-                15
+            "indicator": "DMARC authentication failed",
+            "points": 25
         })
-
-
-        risk_score += 15
-
-
-        if "BEC" not in threat_types:
-
-            threat_types.append(
-                "BEC"
-            )
-
-
-    # ========================================================
-    # CREDENTIAL REQUEST
-    # ========================================================
-
-    credential_words = [
-
-        "password",
-
-        "username",
-
-        "login",
-
-        "sign in",
-
-        "credentials",
-
-        "verify your identity",
-
-        "confirm your account"
-    ]
-
-
-    found_credentials = any(
-        word in text
-        for word in credential_words
-    )
-
-
-    if found_credentials:
 
         indicators.append(
-            "Potential credential harvesting language"
+            "DMARC authentication failure detected"
         )
 
-
-        risk_factors.append({
-
-            "indicator":
-                "Credential request",
-
-            "points":
-                15
-        })
-
-
-        risk_score += 15
-
-
-        if "Phishing" not in threat_types:
-
-            threat_types.append(
-                "Phishing"
-            )
-
-
-    # ========================================================
-    # URL DETECTED
-    # ========================================================
-
-    if len(urls) > 0:
-
-        indicators.append(
-            "URL detected in email"
-        )
-
-
-        risk_factors.append({
-
-            "indicator":
-                "URL detected",
-
-            "points":
-                10
-        })
-
-
-        risk_score += 10
-
-
-        if "Phishing" not in threat_types:
-
-            threat_types.append(
-                "Phishing"
-            )
-
-
-    # ========================================================
-    # SUSPICIOUS URL
-    # ========================================================
-
-    suspicious_urls = analyze_urls(
-        urls
-    )
-
+    # --------------------------------------------------------
+    # Suspicious URLs
+    # --------------------------------------------------------
 
     if suspicious_urls:
+
+        points = min(
+            30,
+            len(suspicious_urls) * 10
+        )
+
+        risk_score += points
+
+        risk_factors.append({
+            "indicator": (
+                f"{len(suspicious_urls)} suspicious URL(s) detected"
+            ),
+            "points": points
+        })
 
         indicators.append(
             "Suspicious URL characteristics detected"
         )
 
-
-        risk_factors.append({
-
-            "indicator":
-                "Suspicious URL",
-
-            "points":
-                10
-        })
-
-
-        risk_score += 10
-
-
-        if "Phishing" not in threat_types:
+        if "PHISHING" not in threat_types:
 
             threat_types.append(
-                "Phishing"
+                "PHISHING"
             )
 
+    # --------------------------------------------------------
+    # Reply-To mismatch
+    # --------------------------------------------------------
 
-    # ========================================================
-    # LOOKALIKE DOMAIN
-    # ========================================================
-
-    if detect_lookalike_domain(
-        sender_domain
+    if (
+        from_email
+        and reply_email
+        and from_email.lower()
+        != reply_email.lower()
     ):
 
-        indicators.append(
-            "Possible lookalike or impersonation domain"
-        )
-
+        risk_score += 15
 
         risk_factors.append({
-
-            "indicator":
-                "Lookalike domain",
-
-            "points":
-                20
+            "indicator": "Reply-To address differs from sender address",
+            "points": 15
         })
 
+        indicators.append(
+            "Sender and Reply-To addresses do not match"
+        )
 
-        risk_score += 20
-
-
-        if "Phishing" not in threat_types:
+        if "IMPERSONATION" not in threat_types:
 
             threat_types.append(
-                "Phishing"
+                "IMPERSONATION"
             )
 
+    # --------------------------------------------------------
+    # Urgent language
+    # --------------------------------------------------------
 
-        if "BEC" not in threat_types:
+    urgent_keywords = [
+        "urgent",
+        "immediately",
+        "action required",
+        "verify now",
+        "account suspended",
+        "account locked",
+        "final notice",
+        "click now",
+        "payment required"
+    ]
+
+    body_lower = (
+        body
+        + " "
+        + subject
+    ).lower()
+
+    matched_urgent = []
+
+    for keyword in urgent_keywords:
+
+        if keyword in body_lower:
+
+            matched_urgent.append(
+                keyword
+            )
+
+    if matched_urgent:
+
+        points = min(
+            15,
+            len(matched_urgent) * 5
+        )
+
+        risk_score += points
+
+        risk_factors.append({
+            "indicator": (
+                "Urgent/social-engineering language detected"
+            ),
+            "points": points
+        })
+
+        indicators.append(
+            "Urgency-based social engineering indicators detected"
+        )
+
+        if "SOCIAL_ENGINEERING" not in threat_types:
 
             threat_types.append(
-                "BEC"
+                "SOCIAL_ENGINEERING"
             )
 
+    # --------------------------------------------------------
+    # IP detection
+    # --------------------------------------------------------
 
-    # ========================================================
-    # SPF
-    # ========================================================
-
-    if authentication["spf"] == "FAIL":
-
-        indicators.append(
-            "SPF authentication failed"
-        )
-
-
-        risk_factors.append({
-
-            "indicator":
-                "SPF failure",
-
-            "points":
-                10
-        })
-
-
-        risk_score += 10
-
-
-    # ========================================================
-    # DKIM
-    # ========================================================
-
-    if authentication["dkim"] == "FAIL":
+    if ips:
 
         indicators.append(
-            "DKIM authentication failed"
+            f"{len(ips)} IP address(es) extracted from email headers"
         )
 
-
-        risk_factors.append({
-
-            "indicator":
-                "DKIM failure",
-
-            "points":
-                10
-        })
-
-
-        risk_score += 10
-
-
-    # ========================================================
-    # DMARC
-    # ========================================================
-
-    if authentication["dmarc"] == "FAIL":
-
-        indicators.append(
-            "DMARC authentication failed"
-        )
-
-
-        risk_factors.append({
-
-            "indicator":
-                "DMARC failure",
-
-            "points":
-                10
-        })
-
-
-        risk_score += 10
-
-
-    # ========================================================
-    # FINAL SCORE
-    # ========================================================
+    # --------------------------------------------------------
+    # Risk limit
+    # --------------------------------------------------------
 
     risk_score = min(
-        risk_score,
-        100
+        100,
+        risk_score
     )
 
-
-    # ========================================================
-    # CLASSIFICATION
-    # ========================================================
+    # --------------------------------------------------------
+    # Classification
+    # --------------------------------------------------------
 
     if risk_score >= 80:
 
-        classification = (
-            "CRITICAL / HIGH RISK"
-        )
+        classification = "CRITICAL"
 
     elif risk_score >= 60:
 
-        classification = (
-            "HIGH RISK"
-        )
+        classification = "HIGH RISK"
 
     elif risk_score >= 30:
 
-        classification = (
-            "SUSPICIOUS"
-        )
+        classification = "SUSPICIOUS"
 
     else:
 
-        classification = (
-            "LOW RISK"
-        )
+        classification = "LOW RISK"
 
+    # --------------------------------------------------------
+    # Threat fallback
+    # --------------------------------------------------------
 
-    # ========================================================
-    # DEFAULT THREAT TYPE
-    # ========================================================
-
-    if not threat_types:
+    if not threat_types and risk_score >= 30:
 
         threat_types.append(
-            "No major threat detected"
+            "SUSPICIOUS_EMAIL"
         )
 
+    # --------------------------------------------------------
+    # Network
+    # --------------------------------------------------------
 
-    return {
+    network = {
+        "ips": ips,
+        "geolocation": get_geolocation_placeholder(
+            ips
+        ),
+        "received_headers": received_headers
+    }
 
-        "indicators":
-            list(
-                dict.fromkeys(
-                    indicators
-                )
-            ),
+    # --------------------------------------------------------
+    # Evidence
+    # --------------------------------------------------------
+
+    evidence = {
+        "sha256": sha256,
+        "integrity_status": "VERIFIED",
+        "timestamp": datetime.utcnow().isoformat()
+    }
+
+    # --------------------------------------------------------
+    # CASE ID
+    # --------------------------------------------------------
+
+    case_id = (
+        "EM-"
+        +
+        datetime.now().strftime(
+            "%Y%m%d%H%M%S"
+        )
+    )
+
+    # --------------------------------------------------------
+    # FINAL RESULT
+    # --------------------------------------------------------
+
+    result = {
+
+        "case_id": case_id,
+
+        "analysis_timestamp":
+            datetime.utcnow().isoformat(),
 
         "risk_score":
             risk_score,
@@ -1412,541 +866,53 @@ def detect_threats(
         "threat_types":
             threat_types,
 
-        "risk_factors":
-            risk_factors,
-
-        "suspicious_urls":
-            suspicious_urls
-    }
-
-
-# ============================================================
-# INVESTIGATION SUMMARY
-# ============================================================
-
-def generate_summary(
-    threat_analysis,
-    authentication,
-    suspicious_urls,
-    ips
-):
-
-    threat_types = (
-        threat_analysis[
-            "threat_types"
-        ]
-    )
-
-    indicators = (
-        threat_analysis[
-            "indicators"
-        ]
-    )
-
-    risk_score = (
-        threat_analysis[
-            "risk_score"
-        ]
-    )
-
-
-    # --------------------------------------------------------
-    # Main classification
-    # --------------------------------------------------------
-
-    if (
-        "Phishing" in threat_types
-        and "BEC" in threat_types
-    ):
-
-        summary = (
-            "The analyzed email shows characteristics "
-            "associated with both phishing and "
-            "Business Email Compromise (BEC)."
-        )
-
-    elif "Phishing" in threat_types:
-
-        summary = (
-            "The analyzed email shows characteristics "
-            "associated with phishing."
-        )
-
-    elif "BEC" in threat_types:
-
-        summary = (
-            "The analyzed email shows characteristics "
-            "associated with Business Email Compromise."
-        )
-
-    else:
-
-        summary = (
-            "The analyzed email does not show major "
-            "known phishing or BEC indicators."
-        )
-
-
-    # --------------------------------------------------------
-    # Risk
-    # --------------------------------------------------------
-
-    summary += (
-        f" The calculated threat score is "
-        f"{risk_score}/100."
-    )
-
-
-    # --------------------------------------------------------
-    # Indicators
-    # --------------------------------------------------------
-
-    if indicators:
-
-        summary += (
-            f" The investigation identified "
-            f"{len(indicators)} suspicious indicator(s)."
-        )
-
-
-    # --------------------------------------------------------
-    # Authentication
-    # --------------------------------------------------------
-
-    failed_auth = []
-
-
-    if authentication["spf"] == "FAIL":
-
-        failed_auth.append(
-            "SPF"
-        )
-
-
-    if authentication["dkim"] == "FAIL":
-
-        failed_auth.append(
-            "DKIM"
-        )
-
-
-    if authentication["dmarc"] == "FAIL":
-
-        failed_auth.append(
-            "DMARC"
-        )
-
-
-    if failed_auth:
-
-        summary += (
-            " Failed authentication mechanisms: "
-            + ", ".join(
-                failed_auth
-            )
-            + "."
-        )
-
-
-    # --------------------------------------------------------
-    # Suspicious URLs
-    # --------------------------------------------------------
-
-    if suspicious_urls:
-
-        summary += (
-            f" {len(suspicious_urls)} suspicious "
-            "URL(s) require further investigation."
-        )
-
-
-    # --------------------------------------------------------
-    # Network
-    # --------------------------------------------------------
-
-    if ips:
-
-        summary += (
-            " The email contains observed public "
-            "mail infrastructure IP address(es): "
-            + ", ".join(ips)
-            + "."
-        )
-
-
-    return summary
-
-
-# ============================================================
-# EVIDENCE HASH
-# ============================================================
-
-def generate_evidence_hash(file_data):
-
-    """
-    Generate SHA-256 hash of original .eml file.
-    """
-
-    return hashlib.sha256(
-        file_data
-    ).hexdigest()
-
-
-# ============================================================
-# TIMESTAMP
-# ============================================================
-
-def get_timestamp():
-
-    """
-    Generate UTC analysis timestamp.
-    """
-
-    return datetime.now(
-        timezone.utc
-    ).isoformat()
-
-
-# ============================================================
-# MAIN ANALYSIS FUNCTION
-# ============================================================
-
-def analyze_email(file_data):
-
-    """
-    Complete EmailGuard analysis pipeline.
-    """
-
-    # ========================================================
-    # PARSE EMAIL
-    # ========================================================
-
-    email_message = parse_email(
-        file_data
-    )
-
-
-    # ========================================================
-    # HEADERS
-    # ========================================================
-
-    headers = analyze_headers(
-        email_message
-    )
-
-
-    # ========================================================
-    # BODY
-    # ========================================================
-
-    body = extract_body(
-        email_message
-    )
-
-
-    # ========================================================
-    # RECEIVED HEADERS
-    # ========================================================
-
-    received_headers = headers[
-        "received_headers"
-    ]
-
-
-    received_text = "\n".join(
-        str(header)
-        for header in received_headers
-    )
-
-
-    # ========================================================
-    # IP EXTRACTION
-    # ========================================================
-
-    ips = extract_ips(
-        received_text
-    )
-
-
-    # ========================================================
-    # IP GEOLOCATION
-    # ========================================================
-
-    geolocation = []
-
-
-    # Limit API calls to first 5 public IPs
-
-    for ip in ips[:5]:
-
-        location = get_ip_geolocation(
-            ip
-        )
-
-        geolocation.append(
-            location
-        )
-
-
-    # ========================================================
-    # URL EXTRACTION
-    # ========================================================
-
-    urls = extract_urls(
-        body
-    )
-
-
-    # ========================================================
-    # AUTHENTICATION
-    # ========================================================
-
-    authentication = analyze_authentication(
-        email_message
-    )
-
-
-    # ========================================================
-    # THREAT DETECTION
-    # ========================================================
-
-    threat_analysis = detect_threats(
-
-        email_message,
-
-        body,
-
-        urls,
-
-        authentication
-    )
-
-
-    # ========================================================
-    # AI / INVESTIGATION SUMMARY
-    # ========================================================
-
-    summary = generate_summary(
-
-        threat_analysis,
-
-        authentication,
-
-        threat_analysis[
-            "suspicious_urls"
-        ],
-
-        ips
-    )
-
-
-    # ========================================================
-    # EVIDENCE HASH
-    # ========================================================
-
-    evidence_hash = generate_evidence_hash(
-        file_data
-    )
-
-
-    # ========================================================
-    # TIMESTAMP
-    # ========================================================
-
-    timestamp = get_timestamp()
-
-
-    # ========================================================
-    # CASE ID
-    # ========================================================
-
-    case_id = (
-        "EM-"
-        + datetime.now(
-            timezone.utc
-        ).strftime(
-            "%Y%m%d%H%M%S"
-        )
-    )
-
-
-    # ========================================================
-    # FINAL RESULT
-    # ========================================================
-
-    result = {
-
-        # ----------------------------------------------------
-        # CASE
-        # ----------------------------------------------------
-
-        "case_id":
-            case_id,
-
-        "analysis_timestamp":
-            timestamp,
-
-
-        # ----------------------------------------------------
-        # THREAT
-        # ----------------------------------------------------
-
-        "risk_score":
-            threat_analysis[
-                "risk_score"
-            ],
-
-        "classification":
-            threat_analysis[
-                "classification"
-            ],
-
-        "threat_types":
-            threat_analysis[
-                "threat_types"
-            ],
-
-
-        # ----------------------------------------------------
-        # EMAIL
-        # ----------------------------------------------------
-
         "email": {
 
             "from":
-                headers[
-                    "from"
-                ],
-
-            "from_name":
-                headers[
-                    "from_name"
-                ],
+                raw_from,
 
             "from_email":
-                headers[
-                    "from_email"
-                ],
+                from_email,
 
             "to":
-                headers[
-                    "to"
-                ],
+                raw_to,
 
             "reply_to":
-                headers[
-                    "reply_to"
-                ],
+                raw_reply_to,
 
-            "subject":
-                headers[
-                    "subject"
-                ],
-
-            "message_id":
-                headers[
-                    "message_id"
-                ],
+            "reply_to_email":
+                reply_email,
 
             "return_path":
-                headers[
-                    "return_path"
-                ]
+                return_path,
+
+            "subject":
+                subject,
+
+            "message_id":
+                message_id
         },
 
+        "authentication":
+            authentication,
 
-        # ----------------------------------------------------
-        # AUTHENTICATION
-        # ----------------------------------------------------
-
-        "authentication": {
-
-            "spf":
-                authentication[
-                    "spf"
-                ],
-
-            "dkim":
-                authentication[
-                    "dkim"
-                ],
-
-            "dmarc":
-                authentication[
-                    "dmarc"
-                ]
-        },
-
-
-        # ----------------------------------------------------
-        # NETWORK
-        # ----------------------------------------------------
-
-        "network": {
-
-            "ips":
-                ips,
-
-            "received_headers":
-                received_headers,
-
-            "geolocation":
-                geolocation
-        },
-
-
-        # ----------------------------------------------------
-        # URLS
-        # ----------------------------------------------------
+        "network":
+            network,
 
         "urls":
             urls,
 
         "suspicious_urls":
-            threat_analysis[
-                "suspicious_urls"
-            ],
-
-
-        # ----------------------------------------------------
-        # THREAT INDICATORS
-        # ----------------------------------------------------
+            suspicious_urls,
 
         "indicators":
-            threat_analysis[
-                "indicators"
-            ],
+            indicators,
 
         "risk_factors":
-            threat_analysis[
-                "risk_factors"
-            ],
+            risk_factors,
 
-
-        # ----------------------------------------------------
-        # SUMMARY
-        # ----------------------------------------------------
-
-        "ai_summary":
-            summary,
-
-
-        # ----------------------------------------------------
-        # EVIDENCE
-        # ----------------------------------------------------
-
-        "evidence": {
-
-            "sha256":
-                evidence_hash,
-
-            "integrity_status":
-                "VERIFIED",
-
-            "timestamp":
-                timestamp
-        }
+        "evidence":
+            evidence
     }
-
 
     return result
