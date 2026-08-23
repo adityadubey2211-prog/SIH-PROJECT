@@ -19,12 +19,6 @@
         href="style.css"
     >
 
-    <!-- Cytoscape.js for Graph Visualization -->
-
-    <script
-        src="https://unpkg.com/cytoscape@3.30.4/dist/cytoscape.min.js">
-    </script>
-
 </head>
 
 
@@ -69,35 +63,25 @@
             </h1>
 
             <p>
+
                 Case ID:
+
                 <span id="caseId">
                     Loading...
                 </span>
+
             </p>
 
         </div>
 
 
-        <div class="header-actions">
-
-            <input
-                type="file"
-                id="emailFile"
-                accept=".eml"
-                hidden
-            >
-
-
-            <button
-                id="generateReportBtn"
-                class="secondary-btn"
-                type="button"
-                onclick="generateReport()"
-            >
-                Generate Report
-            </button>
-
-        </div>
+        <button
+            id="generateReportBtn"
+            class="secondary-btn"
+            type="button"
+        >
+            Generate Report
+        </button>
 
     </div>
 
@@ -109,6 +93,8 @@
 
     <section class="cards">
 
+
+        <!-- THREAT SCORE -->
 
         <div class="card">
 
@@ -131,6 +117,8 @@
 
 
 
+        <!-- CLASSIFICATION -->
+
         <div class="card">
 
             <h3>
@@ -152,6 +140,8 @@
 
 
 
+        <!-- INDICATORS -->
+
         <div class="card">
 
             <h3>
@@ -172,6 +162,8 @@
         </div>
 
 
+
+        <!-- URLS -->
 
         <div class="card">
 
@@ -198,11 +190,13 @@
 
 
     <!-- =================================================
-         EMAIL INFORMATION
+         EMAIL INFORMATION + AUTHENTICATION
     ================================================== -->
 
     <section class="two-column">
 
+
+        <!-- EMAIL INFORMATION -->
 
         <div class="panel">
 
@@ -305,9 +299,7 @@
 
 
 
-        <!-- =================================================
-             AUTHENTICATION
-        ================================================== -->
+        <!-- EMAIL AUTHENTICATION -->
 
         <div class="panel">
 
@@ -381,7 +373,7 @@
 
 
     <!-- =================================================
-         EMAIL ROUTE
+         EMAIL TRANSMISSION PATH
     ================================================== -->
 
     <section class="panel">
@@ -400,11 +392,13 @@
 
 
     <!-- =================================================
-         IP INFORMATION
+         IP + GEOLOCATION + GRAPH
     ================================================== -->
 
     <section class="two-column">
 
+
+        <!-- IP INFORMATION -->
 
         <div class="panel">
 
@@ -494,9 +488,7 @@
 
 
 
-        <!-- =================================================
-             RELATIONSHIP
-        ================================================== -->
+        <!-- INVESTIGATION GRAPH -->
 
         <div class="panel">
 
@@ -539,108 +531,6 @@
 
         </div>
 
-
-    </section>
-
-
-
-    <!-- =================================================
-         P2 GRAPH VISUALIZATION
-    ================================================== -->
-
-    <section class="panel graph-panel">
-
-        <div class="section-header">
-
-            <div>
-
-                <h2>
-                    🕸️ Investigation Graph
-                </h2>
-
-                <p>
-                    Visual relationship between email,
-                    sender infrastructure and threat indicators.
-                </p>
-
-            </div>
-
-            <div
-                id="graphStatus"
-                class="graph-status"
-            >
-                Analysis Graph
-            </div>
-
-        </div>
-
-
-        <div
-            id="cy"
-            class="cytoscape-container"
-        ></div>
-
-
-        <div class="graph-legend">
-
-            <span>
-                📧 Email
-            </span>
-
-            <span>
-                🌐 Domain
-            </span>
-
-            <span>
-                🖥️ IP
-            </span>
-
-            <span>
-                🔗 URL
-            </span>
-
-            <span>
-                ⚠️ Threat
-            </span>
-
-            <span>
-                🎯 Campaign
-            </span>
-
-        </div>
-
-    </section>
-
-
-
-    <!-- =================================================
-         P2 CAMPAIGN CORRELATION
-    ================================================== -->
-
-    <section class="panel">
-
-        <div class="section-header">
-
-            <div>
-
-                <h2>
-                    🔗 Campaign Correlation
-                </h2>
-
-                <p>
-                    Potential relationships discovered from
-                    shared domains, IP addresses and URLs.
-                </p>
-
-            </div>
-
-        </div>
-
-
-        <div
-            id="campaignCorrelation"
-            class="campaign-grid"
-        ></div>
 
     </section>
 
@@ -716,7 +606,7 @@
 
 
     <!-- =================================================
-         EVIDENCE
+         EVIDENCE INTEGRITY
     ================================================== -->
 
     <section class="panel">
@@ -760,17 +650,31 @@
 
 
 
+<!-- =====================================================
+     JAVASCRIPT
+====================================================== -->
+
 <script>
 
 
 // ============================================================
-// LOAD ANALYSIS DATA
+// LIVE BACKEND URL
+// ============================================================
+
+const API_BASE_URL =
+    "https://emailguard-backend-kln0.onrender.com";
+
+
+
+// ============================================================
+// LOAD STORED ANALYSIS DATA
 // ============================================================
 
 const storedData =
     localStorage.getItem(
         "emailAnalysis"
     );
+
 
 
 if (!storedData) {
@@ -785,7 +689,9 @@ if (!storedData) {
 }
 
 
+
 let data;
+
 
 
 try {
@@ -815,7 +721,7 @@ catch (error) {
 
 
 // ============================================================
-// HELPER
+// HELPER FUNCTION
 // ============================================================
 
 function setText(
@@ -830,9 +736,7 @@ function setText(
 
 
     if (!element) {
-
         return;
-
     }
 
 
@@ -858,54 +762,7 @@ function setText(
 
 
 // ============================================================
-// ESCAPE HTML
-// ============================================================
-
-function escapeHtml(value) {
-
-    if (
-        value === undefined ||
-        value === null
-    ) {
-
-        return "";
-
-    }
-
-
-    return String(value)
-
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-
-        .replace(
-            /</g,
-            "&lt;"
-        )
-
-        .replace(
-            />/g,
-            "&gt;"
-        )
-
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-
-        .replace(
-            /'/g,
-            "&#039;"
-        );
-
-}
-
-
-
-// ============================================================
-// CASE
+// CASE ID
 // ============================================================
 
 setText(
@@ -925,10 +782,12 @@ const riskScore =
     );
 
 
+
 setText(
     "riskScore",
     riskScore + "/100"
 );
+
 
 
 setText(
@@ -937,24 +796,30 @@ setText(
 );
 
 
+
 const scoreElement =
     document.getElementById(
         "riskScore"
     );
 
 
-if (riskScore >= 60) {
 
-    scoreElement.classList.add(
-        "danger"
-    );
+if (scoreElement) {
 
-}
-else if (riskScore >= 30) {
+    if (riskScore >= 60) {
 
-    scoreElement.classList.add(
-        "warning"
-    );
+        scoreElement.classList.add(
+            "danger"
+        );
+
+    }
+    else if (riskScore >= 30) {
+
+        scoreElement.classList.add(
+            "warning"
+        );
+
+    }
 
 }
 
@@ -965,14 +830,19 @@ else if (riskScore >= 30) {
 // ============================================================
 
 const threatTypes =
-    data.threat_types || [];
+    Array.isArray(
+        data.threat_types
+    )
+        ? data.threat_types
+        : [];
+
 
 
 setText(
     "threatTypes",
     threatTypes.length
         ? threatTypes.join(" / ")
-        : "None detected"
+        : "No Major Threat"
 );
 
 
@@ -982,7 +852,12 @@ setText(
 // ============================================================
 
 const indicators =
-    data.indicators || [];
+    Array.isArray(
+        data.indicators
+    )
+        ? data.indicators
+        : [];
+
 
 
 setText(
@@ -993,11 +868,16 @@ setText(
 
 
 // ============================================================
-// URLS
+// URL COUNT
 // ============================================================
 
 const urls =
-    data.urls || [];
+    Array.isArray(
+        data.urls
+    )
+        ? data.urls
+        : [];
+
 
 
 setText(
@@ -1008,18 +888,19 @@ setText(
 
 
 // ============================================================
-// EMAIL
+// EMAIL INFORMATION
 // ============================================================
 
 const email =
     data.email || {};
 
 
+
 setText(
     "fromEmail",
-    email.from_email ||
-    email.from
+    email.from_email || email.from
 );
+
 
 
 setText(
@@ -1028,10 +909,12 @@ setText(
 );
 
 
+
 setText(
     "toEmail",
     email.to
 );
+
 
 
 setText(
@@ -1040,16 +923,19 @@ setText(
 );
 
 
+
 setText(
     "subject",
     email.subject
 );
 
 
+
 setText(
     "messageId",
     email.message_id
 );
+
 
 
 setText(
@@ -1067,33 +953,35 @@ const authentication =
     data.authentication || {};
 
 
+
 setText(
     "spf",
-    authentication.spf ||
-    "UNKNOWN"
+    authentication.spf || "UNKNOWN"
 );
+
 
 
 setText(
     "dkim",
-    authentication.dkim ||
-    "UNKNOWN"
+    authentication.dkim || "UNKNOWN"
 );
+
 
 
 setText(
     "dmarc",
-    authentication.dmarc ||
-    "UNKNOWN"
+    authentication.dmarc || "UNKNOWN"
 );
 
 
 
 // ============================================================
-// AUTH COLORS
+// AUTHENTICATION COLORS
 // ============================================================
 
-function updateAuthColor(id) {
+function updateAuthColor(
+    id
+) {
 
     const element =
         document.getElementById(
@@ -1102,14 +990,13 @@ function updateAuthColor(id) {
 
 
     if (!element) {
-
         return;
-
     }
 
 
     const value =
-        element.textContent.toUpperCase();
+        element.textContent
+            .toUpperCase();
 
 
     if (
@@ -1126,14 +1013,17 @@ function updateAuthColor(id) {
 }
 
 
+
 updateAuthColor("spf");
+
 updateAuthColor("dkim");
+
 updateAuthColor("dmarc");
 
 
 
 // ============================================================
-// THREAT INDICATORS
+// INDICATOR LIST
 // ============================================================
 
 const indicatorContainer =
@@ -1142,7 +1032,8 @@ const indicatorContainer =
     );
 
 
-if (!indicators.length) {
+
+if (indicators.length === 0) {
 
     indicatorContainer.innerHTML =
         `
@@ -1168,14 +1059,7 @@ else {
 
 
             div.textContent =
-                "⚠️ " +
-                (
-                    typeof indicator === "object"
-                        ? indicator.indicator ||
-                          indicator.description ||
-                          JSON.stringify(indicator)
-                        : indicator
-                );
+                "⚠️ " + indicator;
 
 
             indicatorContainer.appendChild(
@@ -1190,32 +1074,35 @@ else {
 
 
 // ============================================================
-// NETWORK
+// NETWORK INFORMATION
 // ============================================================
 
 const network =
     data.network || {};
 
 
+
 const ips =
-    network.ips || [];
+    Array.isArray(
+        network.ips
+    )
+        ? network.ips
+        : [];
+
 
 
 const firstIP =
-    ips.length
+    ips.length > 0
         ? ips[0]
         : "Unknown";
 
 
-const senderEmail =
-    email.from_email ||
-    email.from ||
-    "Unknown";
-
 
 const senderDomain =
-    senderEmail.includes("@")
-        ? senderEmail.split("@")[1]
+    email.from_email &&
+    email.from_email.includes("@")
+        ? email.from_email
+            .split("@")[1]
         : "Unknown";
 
 
@@ -1230,6 +1117,7 @@ const route =
     );
 
 
+
 route.innerHTML = `
 
     <div class="route-node">
@@ -1241,42 +1129,54 @@ route.innerHTML = `
         </strong>
 
         <span>
-            ${escapeHtml(senderEmail)}
+            ${escapeHtml(
+                email.from_email ||
+                email.from ||
+                "Unknown"
+            )}
         </span>
 
     </div>
 
+
     <div class="arrow">
         →
     </div>
+
 
     <div class="route-node">
 
         🌐
 
         <strong>
-            ${escapeHtml(senderDomain)}
+            Mail Server
         </strong>
 
     </div>
 
+
     <div class="arrow">
         →
     </div>
+
 
     <div class="route-node">
 
         🖥️
 
         <strong>
-            ${escapeHtml(firstIP)}
+            ${escapeHtml(
+                firstIP
+            )}
         </strong>
 
     </div>
 
+
     <div class="arrow">
         →
     </div>
+
 
     <div class="route-node">
 
@@ -1287,7 +1187,10 @@ route.innerHTML = `
         </strong>
 
         <span>
-            ${escapeHtml(email.to || "Unknown")}
+            ${escapeHtml(
+                email.to ||
+                "Unknown"
+            )}
         </span>
 
     </div>
@@ -1306,8 +1209,21 @@ setText(
 );
 
 
+
+const geolocation =
+    Array.isArray(
+        network.geolocation
+    )
+        ? network.geolocation
+        : [];
+
+
+
 const geo =
-    network.geolocation?.[0];
+    geolocation.length > 0
+        ? geolocation[0]
+        : null;
+
 
 
 if (geo) {
@@ -1317,20 +1233,24 @@ if (geo) {
         geo.country
     );
 
+
     setText(
         "region",
         geo.region
     );
+
 
     setText(
         "city",
         geo.city
     );
 
+
     setText(
         "isp",
         geo.isp
     );
+
 
     setText(
         "organization",
@@ -1342,13 +1262,14 @@ if (geo) {
 
 
 // ============================================================
-// SIMPLE GRAPH
+// GRAPH
 // ============================================================
 
 setText(
     "graphDomain",
     "🌐 " + senderDomain
 );
+
 
 
 setText(
@@ -1368,7 +1289,8 @@ const urlContainer =
     );
 
 
-if (!urls.length) {
+
+if (urls.length === 0) {
 
     urlContainer.innerHTML =
         `
@@ -1401,9 +1323,7 @@ else {
 
                 <span>
                     ${escapeHtml(
-                        typeof url === "string"
-                            ? url
-                            : url.url || ""
+                        url
                     )}
                 </span>
 
@@ -1426,7 +1346,12 @@ else {
 // ============================================================
 
 const suspiciousUrls =
-    data.suspicious_urls || [];
+    Array.isArray(
+        data.suspicious_urls
+    )
+        ? data.suspicious_urls
+        : [];
+
 
 
 const suspiciousContainer =
@@ -1435,7 +1360,8 @@ const suspiciousContainer =
     );
 
 
-if (!suspiciousUrls.length) {
+
+if (suspiciousUrls.length === 0) {
 
     suspiciousContainer.innerHTML =
         `
@@ -1461,7 +1387,11 @@ else {
 
 
             const reasons =
-                item.reasons || [];
+                Array.isArray(
+                    item.reasons
+                )
+                    ? item.reasons
+                    : [];
 
 
             div.innerHTML = `
@@ -1509,7 +1439,12 @@ else {
 // ============================================================
 
 const riskFactors =
-    data.risk_factors || [];
+    Array.isArray(
+        data.risk_factors
+    )
+        ? data.risk_factors
+        : [];
+
 
 
 const riskContainer =
@@ -1518,7 +1453,8 @@ const riskContainer =
     );
 
 
-if (!riskFactors.length) {
+
+if (riskFactors.length === 0) {
 
     riskContainer.innerHTML =
         `
@@ -1572,15 +1508,20 @@ else {
 
 
 // ============================================================
-// AI SUMMARY
+// AI INVESTIGATION SUMMARY
 // ============================================================
 
 let summary = "";
 
 
+
 if (
-    threatTypes.includes("Phishing") &&
-    threatTypes.includes("BEC")
+    threatTypes.includes(
+        "Phishing"
+    ) &&
+    threatTypes.includes(
+        "BEC"
+    )
 ) {
 
     summary =
@@ -1588,7 +1529,9 @@ if (
 
 }
 else if (
-    threatTypes.includes("Phishing")
+    threatTypes.includes(
+        "Phishing"
+    )
 ) {
 
     summary =
@@ -1596,7 +1539,9 @@ else if (
 
 }
 else if (
-    threatTypes.includes("BEC")
+    threatTypes.includes(
+        "BEC"
+    )
 ) {
 
     summary =
@@ -1611,7 +1556,8 @@ else {
 }
 
 
-if (indicators.length) {
+
+if (indicators.length > 0) {
 
     summary +=
         "The analysis identified "
@@ -1619,6 +1565,7 @@ if (indicators.length) {
         + " suspicious indicator(s). ";
 
 }
+
 
 
 if (
@@ -1633,7 +1580,10 @@ if (
 }
 
 
-if (suspiciousUrls.length) {
+
+if (
+    suspiciousUrls.length > 0
+) {
 
     summary +=
         "Suspicious URL characteristics were detected and should be investigated further. ";
@@ -1641,7 +1591,8 @@ if (suspiciousUrls.length) {
 }
 
 
-if (ips.length) {
+
+if (ips.length > 0) {
 
     summary +=
         "The email contains network infrastructure associated with IP address "
@@ -1649,6 +1600,7 @@ if (ips.length) {
         + ".";
 
 }
+
 
 
 setText(
@@ -1666,16 +1618,19 @@ const evidence =
     data.evidence || {};
 
 
+
 setText(
     "hash",
     evidence.sha256
 );
 
 
+
 const integrity =
     document.getElementById(
         "integrity"
     );
+
 
 
 if (
@@ -1690,6 +1645,9 @@ if (
         integrity.textContent =
             "✓ Evidence Verified";
 
+        integrity.className =
+            "verified";
+
     }
     else {
 
@@ -1697,6 +1655,9 @@ if (
             "⚠ Evidence Status: "
             + evidence.integrity_status;
 
+        integrity.className =
+            "warning";
+
     }
 
 }
@@ -1704,847 +1665,77 @@ if (
 
 
 // ============================================================
-// P2 GRAPH VISUALIZATION
+// ESCAPE HTML
 // ============================================================
 
-function buildInvestigationGraph() {
-
-
-    const container =
-        document.getElementById(
-            "cy"
-        );
-
-
-    if (!container) {
-
-        return;
-
-    }
-
-
-    const elements = [];
-
-
-    // --------------------------------------------------------
-    // EMAIL NODE
-    // --------------------------------------------------------
-
-    elements.push({
-
-        data: {
-
-            id: "email",
-
-            label:
-                "📧 Email\n" +
-                (email.subject || "Analyzed Email")
-
-        }
-
-    });
-
-
-
-    // --------------------------------------------------------
-    // DOMAIN NODE
-    // --------------------------------------------------------
-
-    if (
-        senderDomain &&
-        senderDomain !== "Unknown"
-    ) {
-
-        elements.push({
-
-            data: {
-
-                id: "domain",
-
-                label:
-                    "🌐 Domain\n" +
-                    senderDomain
-
-            }
-
-        });
-
-
-        elements.push({
-
-            data: {
-
-                id:
-                    "email-domain",
-
-                source:
-                    "email",
-
-                target:
-                    "domain"
-
-            }
-
-        });
-
-    }
-
-
-
-    // --------------------------------------------------------
-    // IP NODES
-    // --------------------------------------------------------
-
-    ips
-        .slice(0, 5)
-        .forEach(
-            function(ip, index) {
-
-
-                const ipId =
-                    "ip-" + index;
-
-
-                elements.push({
-
-                    data: {
-
-                        id:
-                            ipId,
-
-                        label:
-                            "🖥️ IP\n" +
-                            ip
-
-                    }
-
-                });
-
-
-                if (
-                    senderDomain &&
-                    senderDomain !== "Unknown"
-                ) {
-
-                    elements.push({
-
-                        data: {
-
-                            id:
-                                "domain-" +
-                                ipId,
-
-                            source:
-                                "domain",
-
-                            target:
-                                ipId
-
-                        }
-
-                    });
-
-                }
-                else {
-
-                    elements.push({
-
-                        data: {
-
-                            id:
-                                "email-" +
-                                ipId,
-
-                            source:
-                                "email",
-
-                            target:
-                                ipId
-
-                        }
-
-                    });
-
-                }
-
-            }
-        );
-
-
-
-    // --------------------------------------------------------
-    // URL NODES
-    // --------------------------------------------------------
-
-    urls
-        .slice(0, 6)
-        .forEach(
-            function(url, index) {
-
-
-                const urlValue =
-                    typeof url === "string"
-                        ? url
-                        : url.url || "";
-
-
-                if (!urlValue) {
-
-                    return;
-
-                }
-
-
-                const urlId =
-                    "url-" + index;
-
-
-                elements.push({
-
-                    data: {
-
-                        id:
-                            urlId,
-
-                        label:
-                            "🔗 URL\n" +
-                            truncate(
-                                urlValue,
-                                28
-                            )
-
-                    }
-
-                });
-
-
-                elements.push({
-
-                    data: {
-
-                        id:
-                            "email-" +
-                            urlId,
-
-                        source:
-                            "email",
-
-                        target:
-                            urlId
-
-                    }
-
-                });
-
-            }
-        );
-
-
-
-    // --------------------------------------------------------
-    // THREAT NODE
-    // --------------------------------------------------------
-
-    if (
-        threatTypes.length
-    ) {
-
-
-        elements.push({
-
-            data: {
-
-                id:
-                    "threat",
-
-                label:
-                    "⚠️ Threat\n" +
-                    threatTypes.join(", ")
-
-            }
-
-        });
-
-
-        elements.push({
-
-            data: {
-
-                id:
-                    "email-threat",
-
-                source:
-                    "email",
-
-                target:
-                    "threat"
-
-            }
-
-        });
-
-    }
-
-
-
-    // --------------------------------------------------------
-    // CAMPAIGN NODE
-    // --------------------------------------------------------
-
-    elements.push({
-
-        data: {
-
-            id:
-                "campaign",
-
-            label:
-                "🎯 Possible\nCampaign"
-
-        }
-
-    });
-
-
-    if (
-        threatTypes.length ||
-        ips.length ||
-        suspiciousUrls.length
-    ) {
-
-        elements.push({
-
-            data: {
-
-                id:
-                    "threat-campaign",
-
-                source:
-                    threatTypes.length
-                        ? "threat"
-                        : "email",
-
-                target:
-                    "campaign"
-
-            }
-
-        });
-
-    }
-
-
-
-    // --------------------------------------------------------
-    // CREATE CYTOSCAPE
-    // --------------------------------------------------------
-
-    cytoscape({
-
-        container:
-            container,
-
-        elements:
-            elements,
-
-        layout: {
-
-            name:
-                "cose",
-
-            animate:
-                true,
-
-            padding:
-                40,
-
-            nodeRepulsion:
-                9000,
-
-            idealEdgeLength:
-                150
-
-        },
-
-        style: [
-
-            {
-
-                selector:
-                    "node",
-
-                style: {
-
-                    "label":
-                        "data(label)",
-
-                    "text-wrap":
-                        "wrap",
-
-                    "text-max-width":
-                        "130px",
-
-                    "text-valign":
-                        "center",
-
-                    "text-halign":
-                        "center",
-
-                    "font-size":
-                        "12px",
-
-                    "width":
-                        "75px",
-
-                    "height":
-                        "75px",
-
-                    "background-color":
-                        "#182033",
-
-                    "border-width":
-                        "2px",
-
-                    "border-color":
-                        "#4f46e5",
-
-                    "color":
-                        "#ffffff"
-
-                }
-
-            },
-
-
-            {
-
-                selector:
-                    "#email",
-
-                style: {
-
-                    "background-color":
-                        "#2563eb",
-
-                    "border-color":
-                        "#60a5fa",
-
-                    "width":
-                        "100px",
-
-                    "height":
-                        "100px"
-
-                }
-
-            },
-
-
-            {
-
-                selector:
-                    "#threat",
-
-                style: {
-
-                    "background-color":
-                        "#991b1b",
-
-                    "border-color":
-                        "#ef4444"
-
-                }
-
-            },
-
-
-            {
-
-                selector:
-                    "#campaign",
-
-                style: {
-
-                    "background-color":
-                        "#7c2d12",
-
-                    "border-color":
-                        "#f59e0b"
-
-                }
-
-            },
-
-
-            {
-
-                selector:
-                    "edge",
-
-                style: {
-
-                    "width":
-                        2,
-
-                    "line-color":
-                        "#64748b",
-
-                    "target-arrow-color":
-                        "#64748b",
-
-                    "target-arrow-shape":
-                        "triangle",
-
-                    "curve-style":
-                        "bezier"
-
-                }
-
-            }
-
-        ]
-
-    });
-
-}
-
-
-
-// ============================================================
-// TRUNCATE
-// ============================================================
-
-function truncate(
-    text,
-    maxLength
+function escapeHtml(
+    value
 ) {
 
     if (
-        text.length <= maxLength
+        value === undefined ||
+        value === null
     ) {
 
-        return text;
+        return "";
 
     }
 
 
-    return (
-        text.substring(
-            0,
-            maxLength
+    return String(value)
+
+        .replace(
+            /&/g,
+            "&amp;"
         )
-        + "..."
-    );
 
-}
+        .replace(
+            /</g,
+            "&lt;"
+        )
 
+        .replace(
+            />/g,
+            "&gt;"
+        )
 
+        .replace(
+            /"/g,
+            "&quot;"
+        )
 
-// ============================================================
-// CAMPAIGN CORRELATION
-// ============================================================
-
-function buildCampaignCorrelation() {
-
-
-    const container =
-        document.getElementById(
-            "campaignCorrelation"
+        .replace(
+            /'/g,
+            "&#039;"
         );
 
-
-    if (!container) {
-
-        return;
-
-    }
-
-
-    container.innerHTML = "";
-
-
-
-    const correlations = [];
-
-
-
-    // --------------------------------------------------------
-    // DOMAIN
-    // --------------------------------------------------------
-
-    if (
-        senderDomain !== "Unknown"
-    ) {
-
-        correlations.push({
-
-            type:
-                "Domain",
-
-            value:
-                senderDomain,
-
-            confidence:
-                "High",
-
-            reason:
-                "Sender email domain is directly associated with this investigation."
-
-        });
-
-    }
-
-
-
-    // --------------------------------------------------------
-    // IP
-    // --------------------------------------------------------
-
-    ips.forEach(
-        function(ip) {
-
-            correlations.push({
-
-                type:
-                    "IP Infrastructure",
-
-                value:
-                    ip,
-
-                confidence:
-                    "High",
-
-                reason:
-                    "IP address was extracted from the email transmission path."
-
-            });
-
-        }
-    );
-
-
-
-    // --------------------------------------------------------
-    // SUSPICIOUS URL
-    // --------------------------------------------------------
-
-    suspiciousUrls.forEach(
-        function(item) {
-
-            if (
-                item.domain
-            ) {
-
-                correlations.push({
-
-                    type:
-                        "Suspicious Domain",
-
-                    value:
-                        item.domain,
-
-                    confidence:
-                        "Medium",
-
-                    reason:
-                        (
-                            item.reasons &&
-                            item.reasons.length
-                        )
-                            ? item.reasons.join(", ")
-                            : "Suspicious URL characteristics detected."
-
-                });
-
-            }
-
-        }
-    );
-
-
-
-    // --------------------------------------------------------
-    // THREAT TYPE
-    // --------------------------------------------------------
-
-    threatTypes.forEach(
-        function(type) {
-
-            correlations.push({
-
-                type:
-                    "Threat Pattern",
-
-                value:
-                    type,
-
-                confidence:
-                    riskScore >= 60
-                        ? "High"
-                        : "Medium",
-
-                reason:
-                    "Threat classification was identified by the email analysis engine."
-
-            });
-
-        }
-    );
-
-
-
-    // --------------------------------------------------------
-    // NO CORRELATIONS
-    // --------------------------------------------------------
-
-    if (
-        correlations.length === 0
-    ) {
-
-        container.innerHTML = `
-
-            <div class="campaign-empty">
-
-                <div>
-                    🔍
-                </div>
-
-                <strong>
-                    No campaign correlations found
-                </strong>
-
-                <p>
-                    More evidence is required to establish
-                    infrastructure relationships.
-                </p>
-
-            </div>
-
-        `;
-
-        return;
-
-    }
-
-
-
-    // --------------------------------------------------------
-    // RENDER CARDS
-    // --------------------------------------------------------
-
-    correlations.forEach(
-        function(item) {
-
-
-            const card =
-                document.createElement(
-                    "div"
-                );
-
-
-            card.className =
-                "campaign-card";
-
-
-            card.innerHTML = `
-
-                <div class="campaign-card-top">
-
-                    <span class="campaign-type">
-                        ${escapeHtml(
-                            item.type
-                        )}
-                    </span>
-
-                    <span class="confidence">
-                        ${escapeHtml(
-                            item.confidence
-                        )}
-                    </span>
-
-                </div>
-
-
-                <h3>
-                    ${escapeHtml(
-                        item.value
-                    )}
-                </h3>
-
-
-                <p>
-                    ${escapeHtml(
-                        item.reason
-                    )}
-                </p>
-
-            `;
-
-
-            container.appendChild(
-                card
-            );
-
-        }
-    );
-
 }
 
 
 
 // ============================================================
-// GENERATE REPORT
+// GENERATE FORENSIC PDF REPORT
 // ============================================================
+
+const generateReportBtn =
+    document.getElementById(
+        "generateReportBtn"
+    );
+
+
+
+generateReportBtn.addEventListener(
+    "click",
+    generateReport
+);
+
+
 
 async function generateReport() {
 
-
-    const emailFileInput =
-        document.getElementById(
-            "emailFile"
-        );
-
-
-    const generateReportBtn =
-        document.getElementById(
-            "generateReportBtn"
-        );
-
-
-    if (
-        !emailFileInput.files.length
-    ) {
-
-        emailFileInput.click();
-
-        return;
-
-    }
-
-
-    const file =
-        emailFileInput.files[0];
-
-
-    if (
-        !file.name
-            .toLowerCase()
-            .endsWith(".eml")
-    ) {
-
-        alert(
-            "Only .eml files are supported."
-        );
-
-        emailFileInput.value = "";
-
-        return;
-
-    }
-
-
     try {
 
+        // Disable button
 
         generateReportBtn.disabled =
             true;
@@ -2553,6 +1744,87 @@ async function generateReport() {
         generateReportBtn.innerText =
             "Generating Report...";
 
+
+        // ----------------------------------------------------
+        // Get original email file
+        // ----------------------------------------------------
+
+        const storedFile =
+            localStorage.getItem(
+                "emailFile"
+            );
+
+
+        if (!storedFile) {
+
+            alert(
+                "Original .eml file was not found. Please analyze the email again."
+            );
+
+            return;
+
+        }
+
+
+        /*
+            The file is stored in localStorage
+            as Base64.
+
+            Convert Base64 back to Blob.
+        */
+
+        const parts =
+            storedFile.split(",");
+
+
+        const mime =
+            parts[0]
+                .match(
+                    /:(.*?);/
+                )?.[1]
+            || "message/rfc822";
+
+
+        const binary =
+            atob(
+                parts[1]
+            );
+
+
+        const array =
+            new Uint8Array(
+                binary.length
+            );
+
+
+        for (
+            let i = 0;
+            i < binary.length;
+            i++
+        ) {
+
+            array[i] =
+                binary.charCodeAt(i);
+
+        }
+
+
+        const file =
+            new File(
+                [
+                    array
+                ],
+                "email.eml",
+                {
+                    type: mime
+                }
+            );
+
+
+
+        // ----------------------------------------------------
+        // Form Data
+        // ----------------------------------------------------
 
         const formData =
             new FormData();
@@ -2564,26 +1836,30 @@ async function generateReport() {
         );
 
 
+
+        // ----------------------------------------------------
+        // LIVE RENDER BACKEND
+        // ----------------------------------------------------
+
         const response =
             await fetch(
-                "http://127.0.0.1:8000/analyze-email/report",
+                `${API_BASE_URL}/analyze-email/report`,
                 {
-
-                    method:
-                        "POST",
-
-                    body:
-                        formData
-
+                    method: "POST",
+                    body: formData
                 }
             );
 
 
+
+        // ----------------------------------------------------
+        // Handle API error
+        // ----------------------------------------------------
+
         if (!response.ok) {
 
-
             let errorMessage =
-                "Failed to generate report.";
+                "Failed to generate forensic report.";
 
 
             try {
@@ -2592,19 +1868,15 @@ async function generateReport() {
                     await response.json();
 
 
-                if (
-                    errorData.detail
-                ) {
-
-                    errorMessage =
-                        errorData.detail;
-
-                }
+                errorMessage =
+                    errorData.detail ||
+                    errorMessage;
 
             }
             catch (error) {
 
                 console.error(
+                    "Error reading API response:",
                     error
                 );
 
@@ -2618,21 +1890,19 @@ async function generateReport() {
         }
 
 
+
+        // ----------------------------------------------------
+        // Get PDF Blob
+        // ----------------------------------------------------
+
         const blob =
             await response.blob();
 
 
-        if (
-            !blob ||
-            blob.size === 0
-        ) {
 
-            throw new Error(
-                "Backend returned an empty PDF."
-            );
-
-        }
-
+        // ----------------------------------------------------
+        // Create Download URL
+        // ----------------------------------------------------
 
         const downloadUrl =
             window.URL.createObjectURL(
@@ -2640,19 +1910,21 @@ async function generateReport() {
             );
 
 
-        const link =
+
+        const a =
             document.createElement(
                 "a"
             );
 
 
-        link.href =
+        a.href =
             downloadUrl;
 
 
-        let filename =
-            "EmailGuard_Forensic_Report.pdf";
 
+        // ----------------------------------------------------
+        // Get backend filename
+        // ----------------------------------------------------
 
         const disposition =
             response.headers.get(
@@ -2660,12 +1932,17 @@ async function generateReport() {
             );
 
 
-        if (disposition) {
 
+        let filename =
+            "EmailGuard_Forensic_Report.pdf";
+
+
+
+        if (disposition) {
 
             const match =
                 disposition.match(
-                    /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i
+                    /filename="?([^"]+)"?/i
                 );
 
 
@@ -2675,46 +1952,46 @@ async function generateReport() {
             ) {
 
                 filename =
-                    decodeURIComponent(
-                        match[1]
-                    );
+                    match[1];
 
             }
 
         }
 
 
-        link.download =
+
+        a.download =
             filename;
 
 
+
         document.body.appendChild(
-            link
+            a
         );
 
 
-        link.click();
+        a.click();
 
 
-        link.remove();
+        a.remove();
 
 
-        setTimeout(
-            function () {
 
-                window.URL.revokeObjectURL(
-                    downloadUrl
-                );
-
-            },
-            1000
+        window.URL.revokeObjectURL(
+            downloadUrl
         );
+
+
+
+        console.log(
+            "PDF report downloaded successfully."
+        );
+
 
 
         alert(
-            "Forensic report generated successfully!"
+            "Forensic report generated successfully."
         );
-
 
     }
     catch (error) {
@@ -2743,62 +2020,6 @@ async function generateReport() {
     }
 
 }
-
-
-
-// ============================================================
-// FILE INPUT
-// ============================================================
-
-document
-    .getElementById(
-        "emailFile"
-    )
-    .addEventListener(
-        "change",
-        function () {
-
-
-            if (
-                !this.files.length
-            ) {
-
-                return;
-
-            }
-
-
-            const file =
-                this.files[0];
-
-
-            if (
-                !file.name
-                    .toLowerCase()
-                    .endsWith(".eml")
-            ) {
-
-                alert(
-                    "Please select a valid .eml file."
-                );
-
-
-                this.value = "";
-
-            }
-
-        }
-    );
-
-
-
-// ============================================================
-// BUILD P2 FEATURES
-// ============================================================
-
-buildInvestigationGraph();
-
-buildCampaignCorrelation();
 
 
 </script>

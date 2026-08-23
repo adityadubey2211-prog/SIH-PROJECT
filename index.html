@@ -10,7 +10,9 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>EmailGuard - Email Threat Detection</title>
+    <title>
+        EmailGuard AI - Email Threat Detection
+    </title>
 
     <link
         rel="stylesheet"
@@ -22,6 +24,10 @@
 
 <body>
 
+
+<!-- =====================================================
+     NAVBAR
+====================================================== -->
 
 <nav class="navbar">
 
@@ -36,85 +42,199 @@
 </nav>
 
 
-<main class="home-container">
+
+<!-- =====================================================
+     MAIN
+====================================================== -->
+
+<main class="upload-container">
 
 
-    <section class="intro">
+    <!-- =================================================
+         HERO
+    ================================================== -->
+
+    <section class="hero">
 
         <h1>
-            AI-Powered Email Threat Detection
+            AI-Powered Email
+            <span>
+                Threat Detection
+            </span>
         </h1>
 
+
         <p>
-            Detect phishing, spoofing, impersonation and
-            Business Email Compromise using email forensics
-            and threat intelligence.
+            Analyze suspicious emails using header forensics,
+            phishing detection, authentication analysis,
+            IP intelligence and threat scoring.
         </p>
-
-
-        <div class="features">
-
-            <div>🔍 Email Forensics</div>
-
-            <div>🧠 Threat Detection</div>
-
-            <div>🌍 IP Geolocation</div>
-
-            <div>🔗 Threat Intelligence</div>
-
-            <div>🔐 Evidence Integrity</div>
-
-        </div>
 
     </section>
 
 
 
-    <section class="upload-section">
+    <!-- =================================================
+         UPLOAD PANEL
+    ================================================== -->
+
+    <section class="upload-panel">
+
+
+        <div class="upload-icon">
+            📧
+        </div>
+
 
         <h2>
-            Analyze Email
+            Upload Email for Analysis
         </h2>
 
+
         <p>
-            Upload a suspicious email file for analysis.
+            Upload an email file in
+            <strong>.eml</strong>
+            format.
         </p>
 
 
-        <div class="upload-box">
 
-            <div class="upload-icon">
-                📧
-            </div>
+        <!-- FILE INPUT -->
 
-            <h3>
-                Upload .EML File
-            </h3>
-
-            <p>
-                Select an email file from your computer.
-            </p>
+        <input
+            type="file"
+            id="emailFile"
+            accept=".eml,message/rfc822"
+            hidden
+        >
 
 
-            <input
-                type="file"
-                id="emailFile"
-                accept=".eml"
-            >
 
+        <label
+            for="emailFile"
+            class="upload-btn"
+        >
+            Choose .EML File
+        </label>
+
+
+
+        <!-- FILE NAME -->
+
+        <div
+            id="fileName"
+            class="file-name"
+        >
+            No file selected
         </div>
 
+
+
+        <!-- ANALYZE BUTTON -->
 
         <button
             id="analyzeBtn"
             class="primary-btn"
-            onclick="analyzeEmail()"
+            type="button"
         >
-            Analyze Email
+            🔍 Analyze Email
         </button>
 
 
-        <p id="uploadStatus"></p>
+
+        <!-- STATUS -->
+
+        <div
+            id="statusMessage"
+            class="status-message"
+        ></div>
+
+
+    </section>
+
+
+
+    <!-- =================================================
+         FEATURES
+    ================================================== -->
+
+    <section class="features">
+
+
+        <div class="feature-card">
+
+            <div class="feature-icon">
+                🧠
+            </div>
+
+            <h3>
+                Threat Detection
+            </h3>
+
+            <p>
+                Detect phishing, BEC and suspicious
+                email characteristics.
+            </p>
+
+        </div>
+
+
+
+        <div class="feature-card">
+
+            <div class="feature-icon">
+                🔐
+            </div>
+
+            <h3>
+                Email Authentication
+            </h3>
+
+            <p>
+                Analyze SPF, DKIM and DMARC
+                authentication results.
+            </p>
+
+        </div>
+
+
+
+        <div class="feature-card">
+
+            <div class="feature-icon">
+                🌐
+            </div>
+
+            <h3>
+                IP Intelligence
+            </h3>
+
+            <p>
+                Extract IP addresses and analyze
+                geolocation information.
+            </p>
+
+        </div>
+
+
+
+        <div class="feature-card">
+
+            <div class="feature-icon">
+                📄
+            </div>
+
+            <h3>
+                Forensic Report
+            </h3>
+
+            <p>
+                Generate a downloadable forensic
+                investigation report.
+            </p>
+
+        </div>
+
 
     </section>
 
@@ -122,30 +242,145 @@
 </main>
 
 
+
+<!-- =====================================================
+     JAVASCRIPT
+====================================================== -->
+
 <script>
+
+
+// ============================================================
+// LIVE RENDER BACKEND
+// ============================================================
+
+const API_BASE_URL =
+    "https://emailguard-backend-kln0.onrender.com";
+
+
+
+// ============================================================
+// ELEMENTS
+// ============================================================
+
+const emailFileInput =
+    document.getElementById(
+        "emailFile"
+    );
+
+
+const fileName =
+    document.getElementById(
+        "fileName"
+    );
+
+
+const analyzeBtn =
+    document.getElementById(
+        "analyzeBtn"
+    );
+
+
+const statusMessage =
+    document.getElementById(
+        "statusMessage"
+    );
+
+
+
+// ============================================================
+// FILE SELECTED
+// ============================================================
+
+emailFileInput.addEventListener(
+    "change",
+    function () {
+
+        const file =
+            emailFileInput.files[0];
+
+
+        if (!file) {
+
+            fileName.textContent =
+                "No file selected";
+
+            return;
+
+        }
+
+
+        // Check extension
+
+        if (
+            !file.name
+                .toLowerCase()
+                .endsWith(".eml")
+        ) {
+
+            alert(
+                "Only .eml files are supported."
+            );
+
+
+            emailFileInput.value =
+                "";
+
+
+            fileName.textContent =
+                "No file selected";
+
+
+            return;
+
+        }
+
+
+        fileName.textContent =
+            file.name;
+
+    }
+);
+
+
+
+// ============================================================
+// ANALYZE EMAIL
+// ============================================================
+
+analyzeBtn.addEventListener(
+    "click",
+    analyzeEmail
+);
+
+
 
 async function analyzeEmail() {
 
-    const fileInput =
-        document.getElementById(
-            "emailFile"
-        );
 
+    // --------------------------------------------------------
+    // Check file
+    // --------------------------------------------------------
 
     const file =
-        fileInput.files[0];
+        emailFileInput.files[0];
 
 
     if (!file) {
 
         alert(
-            "Please select an email file."
+            "Please select an .eml file first."
         );
 
         return;
 
     }
 
+
+
+    // --------------------------------------------------------
+    // Check extension
+    // --------------------------------------------------------
 
     if (
         !file.name
@@ -162,44 +397,53 @@ async function analyzeEmail() {
     }
 
 
-    const button =
-        document.getElementById(
-            "analyzeBtn"
-        );
-
-
-    const status =
-        document.getElementById(
-            "uploadStatus"
-        );
-
-
-    button.textContent =
-        "Analyzing...";
-
-    button.disabled =
-        true;
-
-
-    status.textContent =
-        "Analyzing email...";
-
-
-    const formData =
-        new FormData();
-
-
-    formData.append(
-        "file",
-        file
-    );
-
 
     try {
 
+
+        // ----------------------------------------------------
+        // Loading state
+        // ----------------------------------------------------
+
+        analyzeBtn.disabled =
+            true;
+
+
+        analyzeBtn.innerText =
+            "⏳ Analyzing Email...";
+
+
+        statusMessage.textContent =
+            "Uploading email to EmailGuard AI...";
+
+
+
+        // ----------------------------------------------------
+        // FormData
+        // ----------------------------------------------------
+
+        const formData =
+            new FormData();
+
+
+        formData.append(
+            "file",
+            file
+        );
+
+
+
+        // ----------------------------------------------------
+        // Send to Render Backend
+        // ----------------------------------------------------
+
+        statusMessage.textContent =
+            "🔍 Running threat analysis...";
+
+
         const response =
             await fetch(
-                "http://127.0.0.1:8000/analyze-email",
+                `${API_BASE_URL}/analyze-email`,
                 {
                     method: "POST",
                     body: formData
@@ -207,85 +451,252 @@ async function analyzeEmail() {
             );
 
 
+
+        // ----------------------------------------------------
+        // Check response
+        // ----------------------------------------------------
+
         if (!response.ok) {
 
+
+            let errorMessage =
+                "Email analysis failed.";
+
+
+            try {
+
+                const errorData =
+                    await response.json();
+
+
+                errorMessage =
+                    errorData.detail ||
+                    errorMessage;
+
+            }
+            catch (error) {
+
+                console.error(
+                    error
+                );
+
+            }
+
+
             throw new Error(
-                "HTTP Error: "
-                + response.status
+                errorMessage
             );
 
         }
 
+
+
+        // ----------------------------------------------------
+        // Get JSON
+        // ----------------------------------------------------
 
         const result =
             await response.json();
 
 
+
         console.log(
-            "EmailGuard Result:",
+            "EmailGuard analysis:",
             result
         );
 
 
-        if (result.error) {
 
-            alert(
-                result.error
-            );
-
-            button.textContent =
-                "Analyze Email";
-
-            button.disabled =
-                false;
-
-            status.textContent =
-                "";
-
-            return;
-
-        }
-
+        // ----------------------------------------------------
+        // Save analysis result
+        // ----------------------------------------------------
 
         localStorage.setItem(
             "emailAnalysis",
-            JSON.stringify(result)
+            JSON.stringify(
+                result
+            )
         );
 
 
-        window.location.href =
-            "dashboard.html";
+
+        // ----------------------------------------------------
+        // Save original EML file
+        // ----------------------------------------------------
+
+        const base64File =
+            await fileToBase64(
+                file
+            );
+
+
+        localStorage.setItem(
+            "emailFile",
+            base64File
+        );
+
+
+
+        // ----------------------------------------------------
+        // Save filename
+        // ----------------------------------------------------
+
+        localStorage.setItem(
+            "emailFileName",
+            file.name
+        );
+
+
+
+        // ----------------------------------------------------
+        // Success
+        // ----------------------------------------------------
+
+        statusMessage.textContent =
+            "✅ Analysis completed successfully.";
+
+
+
+        analyzeBtn.innerText =
+            "✅ Analysis Complete";
+
+
+
+        // ----------------------------------------------------
+        // Open Dashboard
+        // ----------------------------------------------------
+
+        setTimeout(
+            function () {
+
+                window.location.href =
+                    "dashboard.html";
+
+            },
+            700
+        );
 
 
     }
     catch (error) {
 
+
         console.error(
+            "Analysis Error:",
             error
         );
 
 
+        statusMessage.textContent =
+            "❌ Analysis failed.";
+
+
         alert(
-            "Unable to connect to EmailGuard backend.\n\n" +
-            "Start FastAPI using:\n" +
-            "uvicorn main:app --reload"
+            "Email analysis failed:\n\n"
+            + error.message
         );
 
 
-        button.textContent =
-            "Analyze Email";
-
-
-        button.disabled =
+        analyzeBtn.disabled =
             false;
 
 
-        status.textContent =
-            "";
+        analyzeBtn.innerText =
+            "🔍 Analyze Email";
 
     }
 
 }
+
+
+
+// ============================================================
+// FILE → BASE64
+// ============================================================
+
+function fileToBase64(
+    file
+) {
+
+    return new Promise(
+        function (
+            resolve,
+            reject
+        ) {
+
+            const reader =
+                new FileReader();
+
+
+            reader.onload =
+                function () {
+
+                    resolve(
+                        reader.result
+                    );
+
+                };
+
+
+            reader.onerror =
+                function (error) {
+
+                    reject(
+                        error
+                    );
+
+                };
+
+
+            reader.readAsDataURL(
+                file
+            );
+
+        }
+    );
+
+}
+
+
+
+// ============================================================
+// CHECK BACKEND
+// ============================================================
+
+async function checkBackend() {
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_BASE_URL}/docs`
+            );
+
+
+        if (response.ok) {
+
+            console.log(
+                "✅ EmailGuard backend is online."
+            );
+
+        }
+
+    }
+    catch (error) {
+
+        console.warn(
+            "⚠ Backend is not reachable.",
+            error
+        );
+
+    }
+
+}
+
+
+
+checkBackend();
+
 
 </script>
 
