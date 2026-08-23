@@ -9,7 +9,6 @@ from reportlab.platypus import (
     Spacer,
     Table,
     TableStyle,
-    PageBreak,
 )
 from datetime import datetime
 import os
@@ -22,8 +21,8 @@ import html
 
 def safe_text(value):
     """
-    Safely convert values to text and escape HTML characters
-    before passing them to ReportLab Paragraph.
+    Safely convert any value to string and escape HTML
+    characters before sending it to ReportLab Paragraph.
     """
 
     if value is None:
@@ -33,19 +32,23 @@ def safe_text(value):
 
 
 # ============================================================
-# FOOTER
+# PAGE FOOTER
 # ============================================================
 
 def add_page_footer(canvas, document):
     """
-    Adds footer on every PDF page.
+    Adds footer to every PDF page.
     """
 
     canvas.saveState()
 
     width, height = A4
 
-    canvas.setStrokeColor(colors.HexColor("#D1D5DB"))
+    # Footer line
+    canvas.setStrokeColor(
+        colors.HexColor("#D1D5DB")
+    )
+
     canvas.line(
         18 * mm,
         12 * mm,
@@ -53,9 +56,15 @@ def add_page_footer(canvas, document):
         12 * mm
     )
 
-    canvas.setFont("Helvetica", 7)
+    # Footer text
+    canvas.setFont(
+        "Helvetica",
+        7
+    )
 
-    canvas.setFillColor(colors.HexColor("#6B7280"))
+    canvas.setFillColor(
+        colors.HexColor("#6B7280")
+    )
 
     canvas.drawString(
         18 * mm,
@@ -73,12 +82,16 @@ def add_page_footer(canvas, document):
 
 
 # ============================================================
-# TABLE HELPER
+# TWO COLUMN TABLE
 # ============================================================
 
-def create_two_column_table(rows, normal_style, small_style):
+def create_two_column_table(
+    rows,
+    normal_style,
+    small_style
+):
     """
-    Creates a standard two-column forensic information table.
+    Creates a standard forensic information table.
     """
 
     data = []
@@ -91,6 +104,7 @@ def create_two_column_table(rows, normal_style, small_style):
                     f"<b>{safe_text(key)}</b>",
                     normal_style
                 ),
+
                 Paragraph(
                     safe_text(value),
                     small_style
@@ -103,8 +117,7 @@ def create_two_column_table(rows, normal_style, small_style):
         colWidths=[
             45 * mm,
             125 * mm
-        ],
-        repeatRows=0
+        ]
     )
 
     table.setStyle(
@@ -117,36 +130,42 @@ def create_two_column_table(rows, normal_style, small_style):
                     0.5,
                     colors.HexColor("#CBD5E1")
                 ),
+
                 (
                     "BACKGROUND",
                     (0, 0),
                     (0, -1),
                     colors.HexColor("#F1F5F9")
                 ),
+
                 (
                     "VALIGN",
                     (0, 0),
                     (-1, -1),
                     "TOP"
                 ),
+
                 (
                     "LEFTPADDING",
                     (0, 0),
                     (-1, -1),
                     6
                 ),
+
                 (
                     "RIGHTPADDING",
                     (0, 0),
                     (-1, -1),
                     6
                 ),
+
                 (
                     "TOPPADDING",
                     (0, 0),
                     (-1, -1),
                     6
                 ),
+
                 (
                     "BOTTOMPADDING",
                     (0, 0),
@@ -164,10 +183,29 @@ def create_two_column_table(rows, normal_style, small_style):
 # PDF REPORT GENERATOR
 # ============================================================
 
-def generate_forensic_report(result, output_path):
+def generate_forensic_report(
+    result,
+    output_path
+):
+    """
+    Generate complete EmailGuard AI forensic PDF report.
+
+    Parameters
+    ----------
+    result : dict
+        Analysis result returned by EmailGuard backend.
+
+    output_path : str
+        Location where PDF should be created.
+
+    Returns
+    -------
+    str
+        Generated PDF path.
+    """
 
     # ========================================================
-    # EXTRACT DATA
+    # EXTRACT MAIN DATA
     # ========================================================
 
     case_id = result.get(
@@ -241,10 +279,12 @@ def generate_forensic_report(result, output_path):
     )
 
     # ========================================================
-    # CREATE DIRECTORY
+    # ENSURE OUTPUT DIRECTORY EXISTS
     # ========================================================
 
-    directory = os.path.dirname(output_path)
+    directory = os.path.dirname(
+        output_path
+    )
 
     if directory:
         os.makedirs(
@@ -253,14 +293,16 @@ def generate_forensic_report(result, output_path):
         )
 
     # ========================================================
-    # PDF DOCUMENT
+    # CREATE PDF DOCUMENT
     # ========================================================
 
     document = SimpleDocTemplate(
         output_path,
         pagesize=A4,
+
         rightMargin=18 * mm,
         leftMargin=18 * mm,
+
         topMargin=18 * mm,
         bottomMargin=18 * mm
     )
@@ -271,71 +313,152 @@ def generate_forensic_report(result, output_path):
 
     styles = getSampleStyleSheet()
 
+    # --------------------------------------------------------
+    # TITLE
+    # --------------------------------------------------------
+
     title_style = ParagraphStyle(
         "ReportTitle",
+
         parent=styles["Title"],
+
         fontName="Helvetica-Bold",
+
         fontSize=22,
+
         leading=26,
+
         alignment=TA_CENTER,
-        textColor=colors.HexColor("#0F172A"),
+
+        textColor=colors.HexColor(
+            "#0F172A"
+        ),
+
         spaceAfter=6
     )
 
+    # --------------------------------------------------------
+    # SUBTITLE
+    # --------------------------------------------------------
+
     subtitle_style = ParagraphStyle(
         "ReportSubtitle",
+
         parent=styles["Normal"],
+
         fontName="Helvetica",
+
         fontSize=9,
+
         leading=13,
+
         alignment=TA_CENTER,
-        textColor=colors.HexColor("#64748B"),
+
+        textColor=colors.HexColor(
+            "#64748B"
+        ),
+
         spaceAfter=15
     )
 
+    # --------------------------------------------------------
+    # SECTION HEADING
+    # --------------------------------------------------------
+
     heading_style = ParagraphStyle(
         "ReportHeading",
+
         parent=styles["Heading2"],
+
         fontName="Helvetica-Bold",
+
         fontSize=13,
+
         leading=17,
-        textColor=colors.HexColor("#0F172A"),
+
+        textColor=colors.HexColor(
+            "#0F172A"
+        ),
+
         spaceBefore=12,
+
         spaceAfter=7
     )
 
+    # --------------------------------------------------------
+    # NORMAL TEXT
+    # --------------------------------------------------------
+
     normal_style = ParagraphStyle(
         "ReportNormal",
+
         parent=styles["Normal"],
+
         fontName="Helvetica",
+
         fontSize=9,
+
         leading=13,
-        textColor=colors.HexColor("#1E293B")
+
+        textColor=colors.HexColor(
+            "#1E293B"
+        )
     )
+
+    # --------------------------------------------------------
+    # SMALL TEXT
+    # --------------------------------------------------------
 
     small_style = ParagraphStyle(
         "ReportSmall",
+
         parent=styles["Normal"],
+
         fontName="Helvetica",
+
         fontSize=8,
+
         leading=11,
-        textColor=colors.HexColor("#334155")
+
+        textColor=colors.HexColor(
+            "#334155"
+        )
     )
+
+    # --------------------------------------------------------
+    # DANGER
+    # --------------------------------------------------------
 
     danger_style = ParagraphStyle(
         "Danger",
+
         parent=normal_style,
+
         fontName="Helvetica-Bold",
+
         fontSize=10,
-        textColor=colors.HexColor("#B91C1C")
+
+        textColor=colors.HexColor(
+            "#B91C1C"
+        )
     )
+
+    # --------------------------------------------------------
+    # SUCCESS
+    # --------------------------------------------------------
 
     success_style = ParagraphStyle(
         "Success",
+
         parent=normal_style,
+
         fontName="Helvetica-Bold",
+
         fontSize=10,
-        textColor=colors.HexColor("#15803D")
+
+        textColor=colors.HexColor(
+            "#15803D"
+        )
     )
 
     # ========================================================
@@ -345,7 +468,7 @@ def generate_forensic_report(result, output_path):
     story = []
 
     # ========================================================
-    # HEADER
+    # REPORT HEADER
     # ========================================================
 
     story.append(
@@ -376,10 +499,10 @@ def generate_forensic_report(result, output_path):
     if risk_score >= 80:
 
         summary = (
-            "CRITICAL THREAT DETECTED. The analyzed email contains "
-            "multiple indicators associated with phishing, "
-            "business email compromise, impersonation, suspicious "
-            "URLs and failed email authentication."
+            "CRITICAL THREAT DETECTED. The analyzed email "
+            "contains multiple indicators associated with "
+            "phishing, business email compromise, impersonation, "
+            "suspicious URLs and failed email authentication."
         )
 
         summary_style = danger_style
@@ -387,8 +510,9 @@ def generate_forensic_report(result, output_path):
     elif risk_score >= 60:
 
         summary = (
-            "HIGH RISK EMAIL. Multiple suspicious characteristics "
-            "were detected and analyst review is recommended."
+            "HIGH RISK EMAIL. Multiple suspicious "
+            "characteristics were detected and analyst "
+            "review is recommended."
         )
 
         summary_style = danger_style
@@ -405,8 +529,8 @@ def generate_forensic_report(result, output_path):
     else:
 
         summary = (
-            "LOW RISK. No major malicious indicators were detected "
-            "by the current analysis engine."
+            "LOW RISK. No major malicious indicators were "
+            "detected by the current analysis engine."
         )
 
         summary_style = success_style
@@ -426,7 +550,7 @@ def generate_forensic_report(result, output_path):
     )
 
     # ========================================================
-    # 1 CASE INFORMATION
+    # 1. CASE INFORMATION
     # ========================================================
 
     story.append(
@@ -437,9 +561,20 @@ def generate_forensic_report(result, output_path):
     )
 
     case_rows = [
-        ("Case ID", case_id),
-        ("File Name", filename),
-        ("Analysis Timestamp", timestamp)
+        (
+            "Case ID",
+            case_id
+        ),
+
+        (
+            "File Name",
+            filename
+        ),
+
+        (
+            "Analysis Timestamp",
+            timestamp
+        )
     ]
 
     story.append(
@@ -451,7 +586,7 @@ def generate_forensic_report(result, output_path):
     )
 
     # ========================================================
-    # 2 RISK ASSESSMENT
+    # 2. RISK ASSESSMENT
     # ========================================================
 
     story.append(
@@ -471,30 +606,32 @@ def generate_forensic_report(result, output_path):
     )
 
     risk_rows = [
-        ("Risk Score", f"{risk_score} / 100"),
-        ("Classification", classification),
-        ("Threat Types", threat_string)
+        (
+            "Risk Score",
+            f"{risk_score} / 100"
+        ),
+
+        (
+            "Classification",
+            classification
+        ),
+
+        (
+            "Threat Types",
+            threat_string
+        )
     ]
 
-    risk_table = create_two_column_table(
-        risk_rows,
-        normal_style,
-        small_style
-    )
-
     story.append(
-        risk_table
-    )
-
-    story.append(
-        Spacer(
-            1,
-            8
+        create_two_column_table(
+            risk_rows,
+            normal_style,
+            small_style
         )
     )
 
     # ========================================================
-    # 3 EMAIL INFORMATION
+    # 3. EMAIL INFORMATION
     # ========================================================
 
     story.append(
@@ -505,14 +642,69 @@ def generate_forensic_report(result, output_path):
     )
 
     email_rows = [
-        ("From", email.get("from", "N/A")),
-        ("From Email", email.get("from_email", "N/A")),
-        ("To", email.get("to", "N/A")),
-        ("Reply-To", email.get("reply_to", "N/A")),
-        ("Reply-To Email", email.get("reply_to_email", "N/A")),
-        ("Return-Path", email.get("return_path", "N/A")),
-        ("Subject", email.get("subject", "N/A")),
-        ("Message-ID", email.get("message_id", "N/A"))
+        (
+            "From",
+            email.get(
+                "from",
+                "N/A"
+            )
+        ),
+
+        (
+            "From Email",
+            email.get(
+                "from_email",
+                "N/A"
+            )
+        ),
+
+        (
+            "To",
+            email.get(
+                "to",
+                "N/A"
+            )
+        ),
+
+        (
+            "Reply-To",
+            email.get(
+                "reply_to",
+                "N/A"
+            )
+        ),
+
+        (
+            "Reply-To Email",
+            email.get(
+                "reply_to_email",
+                "N/A"
+            )
+        ),
+
+        (
+            "Return-Path",
+            email.get(
+                "return_path",
+                "N/A"
+            )
+        ),
+
+        (
+            "Subject",
+            email.get(
+                "subject",
+                "N/A"
+            )
+        ),
+
+        (
+            "Message-ID",
+            email.get(
+                "message_id",
+                "N/A"
+            )
+        )
     ]
 
     story.append(
@@ -524,7 +716,7 @@ def generate_forensic_report(result, output_path):
     )
 
     # ========================================================
-    # 4 AUTHENTICATION
+    # 4. EMAIL AUTHENTICATION
     # ========================================================
 
     story.append(
@@ -540,13 +732,19 @@ def generate_forensic_report(result, output_path):
                 "<b>Mechanism</b>",
                 normal_style
             ),
+
             Paragraph(
                 "<b>Result</b>",
                 normal_style
             )
         ],
+
         [
-            Paragraph("SPF", normal_style),
+            Paragraph(
+                "SPF",
+                normal_style
+            ),
+
             Paragraph(
                 safe_text(
                     authentication.get(
@@ -557,8 +755,13 @@ def generate_forensic_report(result, output_path):
                 normal_style
             )
         ],
+
         [
-            Paragraph("DKIM", normal_style),
+            Paragraph(
+                "DKIM",
+                normal_style
+            ),
+
             Paragraph(
                 safe_text(
                     authentication.get(
@@ -569,8 +772,13 @@ def generate_forensic_report(result, output_path):
                 normal_style
             )
         ],
+
         [
-            Paragraph("DMARC", normal_style),
+            Paragraph(
+                "DMARC",
+                normal_style
+            ),
+
             Paragraph(
                 safe_text(
                     authentication.get(
@@ -585,6 +793,7 @@ def generate_forensic_report(result, output_path):
 
     auth_table = Table(
         auth_data,
+
         colWidths=[
             85 * mm,
             85 * mm
@@ -601,30 +810,35 @@ def generate_forensic_report(result, output_path):
                     0.5,
                     colors.HexColor("#CBD5E1")
                 ),
+
                 (
                     "BACKGROUND",
                     (0, 0),
                     (-1, 0),
                     colors.HexColor("#E2E8F0")
                 ),
+
                 (
                     "VALIGN",
                     (0, 0),
                     (-1, -1),
                     "MIDDLE"
                 ),
+
                 (
                     "ALIGN",
                     (1, 1),
                     (1, -1),
                     "CENTER"
                 ),
+
                 (
                     "TOPPADDING",
                     (0, 0),
                     (-1, -1),
                     7
                 ),
+
                 (
                     "BOTTOMPADDING",
                     (0, 0),
@@ -640,7 +854,7 @@ def generate_forensic_report(result, output_path):
     )
 
     # ========================================================
-    # 5 NETWORK ANALYSIS
+    # 5. NETWORK ANALYSIS
     # ========================================================
 
     story.append(
@@ -656,15 +870,23 @@ def generate_forensic_report(result, output_path):
     )
 
     if ips:
+
         ip_string = ", ".join(
             str(ip)
             for ip in ips
         )
+
     else:
-        ip_string = "No IP addresses detected"
+
+        ip_string = (
+            "No IP addresses detected"
+        )
 
     network_rows = [
-        ("Extracted IPs", ip_string)
+        (
+            "Extracted IPs",
+            ip_string
+        )
     ]
 
     geolocation = network.get(
@@ -683,6 +905,7 @@ def generate_forensic_report(result, output_path):
                         "N/A"
                     )
                 ),
+
                 (
                     "Country",
                     location.get(
@@ -690,6 +913,7 @@ def generate_forensic_report(result, output_path):
                         "Unknown"
                     )
                 ),
+
                 (
                     "Region",
                     location.get(
@@ -697,6 +921,7 @@ def generate_forensic_report(result, output_path):
                         "Unknown"
                     )
                 ),
+
                 (
                     "City",
                     location.get(
@@ -704,6 +929,7 @@ def generate_forensic_report(result, output_path):
                         "Unknown"
                     )
                 ),
+
                 (
                     "ISP",
                     location.get(
@@ -711,6 +937,7 @@ def generate_forensic_report(result, output_path):
                         "Unknown"
                     )
                 ),
+
                 (
                     "Organization",
                     location.get(
@@ -718,6 +945,7 @@ def generate_forensic_report(result, output_path):
                         "Unknown"
                     )
                 ),
+
                 (
                     "Latitude",
                     location.get(
@@ -725,6 +953,7 @@ def generate_forensic_report(result, output_path):
                         "N/A"
                     )
                 ),
+
                 (
                     "Longitude",
                     location.get(
@@ -732,6 +961,7 @@ def generate_forensic_report(result, output_path):
                         "N/A"
                     )
                 ),
+
                 (
                     "Lookup Status",
                     location.get(
@@ -789,7 +1019,7 @@ def generate_forensic_report(result, output_path):
             )
 
     # ========================================================
-    # 6 URL ANALYSIS
+    # 6. URL ANALYSIS
     # ========================================================
 
     story.append(
@@ -862,14 +1092,16 @@ def generate_forensic_report(result, output_path):
 
             story.append(
                 Paragraph(
-                    f"<b>URL:</b> {safe_text(url)}",
+                    f"<b>URL:</b> "
+                    f"{safe_text(url)}",
                     danger_style
                 )
             )
 
             story.append(
                 Paragraph(
-                    f"<b>Domain:</b> {safe_text(domain)}",
+                    f"<b>Domain:</b> "
+                    f"{safe_text(domain)}",
                     small_style
                 )
             )
@@ -891,7 +1123,7 @@ def generate_forensic_report(result, output_path):
             )
 
     # ========================================================
-    # 7 THREAT INDICATORS
+    # 7. THREAT INDICATORS
     # ========================================================
 
     story.append(
@@ -929,7 +1161,7 @@ def generate_forensic_report(result, output_path):
         )
 
     # ========================================================
-    # 8 RISK FACTORS
+    # 8. RISK FACTORS
     # ========================================================
 
     story.append(
@@ -947,6 +1179,7 @@ def generate_forensic_report(result, output_path):
                     "<b>Indicator</b>",
                     normal_style
                 ),
+
                 Paragraph(
                     "<b>Points</b>",
                     normal_style
@@ -967,6 +1200,7 @@ def generate_forensic_report(result, output_path):
                         ),
                         small_style
                     ),
+
                     Paragraph(
                         safe_text(
                             factor.get(
@@ -981,10 +1215,12 @@ def generate_forensic_report(result, output_path):
 
         factor_table = Table(
             factor_data,
+
             colWidths=[
                 130 * mm,
                 40 * mm
             ],
+
             repeatRows=1
         )
 
@@ -998,30 +1234,35 @@ def generate_forensic_report(result, output_path):
                         0.5,
                         colors.HexColor("#CBD5E1")
                     ),
+
                     (
                         "BACKGROUND",
                         (0, 0),
                         (-1, 0),
                         colors.HexColor("#E2E8F0")
                     ),
+
                     (
                         "ALIGN",
                         (1, 1),
                         (1, -1),
                         "CENTER"
                     ),
+
                     (
                         "VALIGN",
                         (0, 0),
                         (-1, -1),
                         "MIDDLE"
                     ),
+
                     (
                         "TOPPADDING",
                         (0, 0),
                         (-1, -1),
                         6
                     ),
+
                     (
                         "BOTTOMPADDING",
                         (0, 0),
@@ -1046,7 +1287,7 @@ def generate_forensic_report(result, output_path):
         )
 
     # ========================================================
-    # 9 FORENSIC ASSESSMENT
+    # 9. FORENSIC ASSESSMENT
     # ========================================================
 
     story.append(
@@ -1069,28 +1310,29 @@ def generate_forensic_report(result, output_path):
 
         assessment = (
             "The analyzed email contains several suspicious "
-            "characteristics. Further investigation by a security "
-            "analyst is recommended before user interaction."
+            "characteristics. Further investigation by a "
+            "security analyst is recommended before user "
+            "interaction."
         )
 
     elif risk_score >= 30:
 
         assessment = (
             "The analyzed email contains some suspicious "
-            "characteristics but does not currently meet the "
-            "highest risk threshold."
+            "characteristics but does not currently meet "
+            "the highest risk threshold."
         )
 
     else:
 
         assessment = (
-            "No major malicious indicators were detected by "
-            "the current analysis engine."
+            "No major malicious indicators were detected "
+            "by the current analysis engine."
         )
 
     story.append(
         Paragraph(
-            assessment,
+            safe_text(assessment),
             normal_style
         )
     )
@@ -1113,7 +1355,7 @@ def generate_forensic_report(result, output_path):
     )
 
     # ========================================================
-    # 10 DIGITAL EVIDENCE
+    # 10. DIGITAL EVIDENCE
     # ========================================================
 
     story.append(
@@ -1131,6 +1373,7 @@ def generate_forensic_report(result, output_path):
                 "N/A"
             )
         ),
+
         (
             "Integrity Status",
             evidence.get(
@@ -1138,6 +1381,7 @@ def generate_forensic_report(result, output_path):
                 "N/A"
             )
         ),
+
         (
             "Evidence Timestamp",
             evidence.get(
@@ -1156,7 +1400,7 @@ def generate_forensic_report(result, output_path):
     )
 
     # ========================================================
-    # 11 RECOMMENDED ACTION
+    # 11. RECOMMENDED ACTION
     # ========================================================
 
     story.append(
@@ -1170,10 +1414,15 @@ def generate_forensic_report(result, output_path):
 
         actions = [
             "Do not click links contained in the email.",
+
             "Do not reply to the sender.",
+
             "Quarantine the email.",
+
             "Block or investigate suspicious sender domains.",
+
             "Investigate the originating IP and infrastructure.",
+
             "Verify the request through an independent trusted channel."
         ]
 
@@ -1181,7 +1430,9 @@ def generate_forensic_report(result, output_path):
 
         actions = [
             "Avoid interacting with suspicious links or attachments.",
+
             "Verify the sender through an independent channel.",
+
             "Forward the email to the security team for investigation."
         ]
 
@@ -1189,6 +1440,7 @@ def generate_forensic_report(result, output_path):
 
         actions = [
             "Continue normal security monitoring.",
+
             "Review suspicious indicators if user interaction is planned."
         ]
 
@@ -1249,7 +1501,9 @@ def generate_forensic_report(result, output_path):
 
     document.build(
         story,
+
         onFirstPage=add_page_footer,
+
         onLaterPages=add_page_footer
     )
 

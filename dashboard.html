@@ -21,13 +21,7 @@
 
 </head>
 
-
 <body>
-
-
-<!-- =====================================================
-     NAVBAR
-====================================================== -->
 
 <nav class="navbar">
 
@@ -42,17 +36,7 @@
 </nav>
 
 
-
-<!-- =====================================================
-     DASHBOARD
-====================================================== -->
-
 <main class="dashboard">
-
-
-    <!-- =================================================
-         HEADER
-    ================================================== -->
 
     <div class="dashboard-header">
 
@@ -63,17 +47,13 @@
             </h1>
 
             <p>
-
                 Case ID:
-
                 <span id="caseId">
                     Loading...
                 </span>
-
             </p>
 
         </div>
-
 
         <button
             id="generateReportBtn"
@@ -86,15 +66,7 @@
     </div>
 
 
-
-    <!-- =================================================
-         SUMMARY CARDS
-    ================================================== -->
-
     <section class="cards">
-
-
-        <!-- THREAT SCORE -->
 
         <div class="card">
 
@@ -116,9 +88,6 @@
         </div>
 
 
-
-        <!-- CLASSIFICATION -->
-
         <div class="card">
 
             <h3>
@@ -138,9 +107,6 @@
 
         </div>
 
-
-
-        <!-- INDICATORS -->
 
         <div class="card">
 
@@ -162,9 +128,6 @@
         </div>
 
 
-
-        <!-- URLS -->
-
         <div class="card">
 
             <h3>
@@ -184,19 +147,10 @@
 
         </div>
 
-
     </section>
 
 
-
-    <!-- =================================================
-         EMAIL INFORMATION + AUTHENTICATION
-    ================================================== -->
-
     <section class="two-column">
-
-
-        <!-- EMAIL INFORMATION -->
 
         <div class="panel">
 
@@ -204,102 +158,43 @@
                 Email Information
             </h2>
 
-
             <div class="info-row">
-
-                <strong>
-                    From:
-                </strong>
-
-                <span id="fromEmail">
-                    Loading...
-                </span>
-
+                <strong>From:</strong>
+                <span id="fromEmail">Loading...</span>
             </div>
 
-
             <div class="info-row">
-
-                <strong>
-                    From Name:
-                </strong>
-
-                <span id="fromName">
-                    Loading...
-                </span>
-
+                <strong>From Name:</strong>
+                <span id="fromName">Loading...</span>
             </div>
 
-
             <div class="info-row">
-
-                <strong>
-                    To:
-                </strong>
-
-                <span id="toEmail">
-                    Loading...
-                </span>
-
+                <strong>To:</strong>
+                <span id="toEmail">Loading...</span>
             </div>
 
-
             <div class="info-row">
-
-                <strong>
-                    Reply-To:
-                </strong>
-
-                <span id="replyTo">
-                    Loading...
-                </span>
-
+                <strong>Reply-To:</strong>
+                <span id="replyTo">Loading...</span>
             </div>
 
-
             <div class="info-row">
-
-                <strong>
-                    Subject:
-                </strong>
-
-                <span id="subject">
-                    Loading...
-                </span>
-
+                <strong>Subject:</strong>
+                <span id="subject">Loading...</span>
             </div>
 
-
             <div class="info-row">
-
-                <strong>
-                    Message ID:
-                </strong>
-
-                <span id="messageId">
-                    Loading...
-                </span>
-
+                <strong>Message ID:</strong>
+                <span id="messageId">Loading...</span>
             </div>
 
-
             <div class="info-row">
-
-                <strong>
-                    Return Path:
-                </strong>
-
-                <span id="returnPath">
-                    Loading...
-                </span>
-
+                <strong>Return Path:</strong>
+                <span id="returnPath">Loading...</span>
             </div>
 
         </div>
 
-
-
-        <!-- EMAIL AUTHENTICATION -->
 
         <div class="panel">
 
@@ -307,55 +202,25 @@
                 Email Authentication
             </h2>
 
-
             <div class="auth-row">
-
-                <span>
-                    SPF
-                </span>
-
-                <strong id="spf">
-                    UNKNOWN
-                </strong>
-
+                <span>SPF</span>
+                <strong id="spf">UNKNOWN</strong>
             </div>
 
-
             <div class="auth-row">
-
-                <span>
-                    DKIM
-                </span>
-
-                <strong id="dkim">
-                    UNKNOWN
-                </strong>
-
+                <span>DKIM</span>
+                <strong id="dkim">UNKNOWN</strong>
             </div>
 
-
             <div class="auth-row">
-
-                <span>
-                    DMARC
-                </span>
-
-                <strong id="dmarc">
-                    UNKNOWN
-                </strong>
-
+                <span>DMARC</span>
+                <strong id="dmarc">UNKNOWN</strong>
             </div>
 
         </div>
 
-
     </section>
 
-
-
-    <!-- =================================================
-         THREAT INDICATORS
-    ================================================== -->
 
     <section class="panel">
 
@@ -363,18 +228,10 @@
             Threat Indicators
         </h2>
 
-        <div
-            id="indicators"
-            class="indicators"
-        ></div>
+        <div id="indicators"></div>
 
     </section>
 
-
-
-    <!-- =================================================
-         EMAIL TRANSMISSION PATH
-    ================================================== -->
 
     <section class="panel">
 
@@ -390,15 +247,7 @@
     </section>
 
 
-
-    <!-- =================================================
-         IP + GEOLOCATION + GRAPH
-    ================================================== -->
-
     <section class="two-column">
-
-
-        <!-- IP INFORMATION -->
 
         <div class="panel">
 
@@ -406,89 +255,38 @@
                 IP & Geolocation
             </h2>
 
-
             <div class="info-row">
-
-                <strong>
-                    IP Address:
-                </strong>
-
-                <span id="ipAddress">
-                    Loading...
-                </span>
-
+                <strong>IP Address:</strong>
+                <span id="ipAddress">Loading...</span>
             </div>
 
-
             <div class="info-row">
-
-                <strong>
-                    Country:
-                </strong>
-
-                <span id="country">
-                    Pending API
-                </span>
-
+                <strong>Country:</strong>
+                <span id="country">Pending API</span>
             </div>
 
-
             <div class="info-row">
-
-                <strong>
-                    Region:
-                </strong>
-
-                <span id="region">
-                    Pending API
-                </span>
-
+                <strong>Region:</strong>
+                <span id="region">Pending API</span>
             </div>
 
-
             <div class="info-row">
-
-                <strong>
-                    City:
-                </strong>
-
-                <span id="city">
-                    Pending API
-                </span>
-
+                <strong>City:</strong>
+                <span id="city">Pending API</span>
             </div>
 
-
             <div class="info-row">
-
-                <strong>
-                    ISP:
-                </strong>
-
-                <span id="isp">
-                    Pending API
-                </span>
-
+                <strong>ISP:</strong>
+                <span id="isp">Pending API</span>
             </div>
 
-
             <div class="info-row">
-
-                <strong>
-                    Organization:
-                </strong>
-
-                <span id="organization">
-                    Pending API
-                </span>
-
+                <strong>Organization:</strong>
+                <span id="organization">Pending API</span>
             </div>
 
         </div>
 
-
-
-        <!-- INVESTIGATION GRAPH -->
 
         <div class="panel">
 
@@ -496,32 +294,25 @@
                 Investigation Relationship
             </h2>
 
-
             <div class="simple-graph">
 
                 <div>
                     📧 Email
                 </div>
 
-                <span>
-                    ↓
-                </span>
+                <span>↓</span>
 
                 <div id="graphDomain">
                     🌐 Domain
                 </div>
 
-                <span>
-                    ↓
-                </span>
+                <span>↓</span>
 
                 <div id="graphIP">
                     🖥️ IP Address
                 </div>
 
-                <span>
-                    ↓
-                </span>
+                <span>↓</span>
 
                 <div>
                     🎯 Possible Campaign
@@ -531,14 +322,8 @@
 
         </div>
 
-
     </section>
 
-
-
-    <!-- =================================================
-         DETECTED URLS
-    ================================================== -->
 
     <section class="panel">
 
@@ -551,11 +336,6 @@
     </section>
 
 
-
-    <!-- =================================================
-         SUSPICIOUS URLS
-    ================================================== -->
-
     <section class="panel">
 
         <h2>
@@ -567,11 +347,6 @@
     </section>
 
 
-
-    <!-- =================================================
-         RISK FACTORS
-    ================================================== -->
-
     <section class="panel">
 
         <h2>
@@ -582,11 +357,6 @@
 
     </section>
 
-
-
-    <!-- =================================================
-         AI SUMMARY
-    ================================================== -->
 
     <section class="panel">
 
@@ -604,17 +374,11 @@
     </section>
 
 
-
-    <!-- =================================================
-         EVIDENCE INTEGRITY
-    ================================================== -->
-
     <section class="panel">
 
         <h2>
             Evidence Integrity
         </h2>
-
 
         <div class="blockchain">
 
@@ -622,17 +386,12 @@
                 🔐 Evidence Hash
             </div>
 
-
             <div>
-
                 SHA-256:
-
                 <span id="hash">
                     Loading...
                 </span>
-
             </div>
-
 
             <div
                 id="integrity"
@@ -645,36 +404,19 @@
 
     </section>
 
-
 </main>
 
 
-
-<!-- =====================================================
-     JAVASCRIPT
-====================================================== -->
-
 <script>
 
-
-// ============================================================
-// LIVE BACKEND URL
-// ============================================================
-
 const API_BASE_URL =
-    "https://emailguard-backend-kln0.onrender.com";
+    "http://127.0.0.1:8000";
 
-
-
-// ============================================================
-// LOAD STORED ANALYSIS DATA
-// ============================================================
 
 const storedData =
     localStorage.getItem(
         "emailAnalysis"
     );
-
 
 
 if (!storedData) {
@@ -689,9 +431,7 @@ if (!storedData) {
 }
 
 
-
 let data;
-
 
 
 try {
@@ -704,11 +444,6 @@ try {
 }
 catch (error) {
 
-    console.error(
-        "JSON parsing error:",
-        error
-    );
-
     alert(
         "Invalid analysis data."
     );
@@ -718,11 +453,6 @@ catch (error) {
 
 }
 
-
-
-// ============================================================
-// HELPER FUNCTION
-// ============================================================
 
 function setText(
     id,
@@ -734,11 +464,9 @@ function setText(
             id
         );
 
-
     if (!element) {
         return;
     }
-
 
     if (
         value !== undefined &&
@@ -760,9 +488,8 @@ function setText(
 }
 
 
-
 // ============================================================
-// CASE ID
+// CASE
 // ============================================================
 
 setText(
@@ -771,9 +498,8 @@ setText(
 );
 
 
-
 // ============================================================
-// RISK SCORE
+// RISK
 // ============================================================
 
 const riskScore =
@@ -782,12 +508,10 @@ const riskScore =
     );
 
 
-
 setText(
     "riskScore",
     riskScore + "/100"
 );
-
 
 
 setText(
@@ -796,12 +520,10 @@ setText(
 );
 
 
-
 const scoreElement =
     document.getElementById(
         "riskScore"
     );
-
 
 
 if (scoreElement) {
@@ -824,9 +546,8 @@ if (scoreElement) {
 }
 
 
-
 // ============================================================
-// THREAT TYPES
+// THREATS
 // ============================================================
 
 const threatTypes =
@@ -837,14 +558,12 @@ const threatTypes =
         : [];
 
 
-
 setText(
     "threatTypes",
     threatTypes.length
         ? threatTypes.join(" / ")
         : "No Major Threat"
 );
-
 
 
 // ============================================================
@@ -859,16 +578,14 @@ const indicators =
         : [];
 
 
-
 setText(
     "indicatorCount",
     indicators.length
 );
 
 
-
 // ============================================================
-// URL COUNT
+// URLS
 // ============================================================
 
 const urls =
@@ -879,28 +596,25 @@ const urls =
         : [];
 
 
-
 setText(
     "urlCount",
     urls.length
 );
 
 
-
 // ============================================================
-// EMAIL INFORMATION
+// EMAIL
 // ============================================================
 
 const email =
     data.email || {};
 
 
-
 setText(
     "fromEmail",
-    email.from_email || email.from
+    email.from_email ||
+    email.from
 );
-
 
 
 setText(
@@ -909,12 +623,10 @@ setText(
 );
 
 
-
 setText(
     "toEmail",
     email.to
 );
-
 
 
 setText(
@@ -923,12 +635,10 @@ setText(
 );
 
 
-
 setText(
     "subject",
     email.subject
 );
-
 
 
 setText(
@@ -937,67 +647,55 @@ setText(
 );
 
 
-
 setText(
     "returnPath",
     email.return_path
 );
 
 
-
 // ============================================================
-// AUTHENTICATION
+// AUTH
 // ============================================================
 
 const authentication =
     data.authentication || {};
 
 
-
 setText(
     "spf",
-    authentication.spf || "UNKNOWN"
+    authentication.spf ||
+    "UNKNOWN"
 );
-
 
 
 setText(
     "dkim",
-    authentication.dkim || "UNKNOWN"
+    authentication.dkim ||
+    "UNKNOWN"
 );
-
 
 
 setText(
     "dmarc",
-    authentication.dmarc || "UNKNOWN"
+    authentication.dmarc ||
+    "UNKNOWN"
 );
 
 
-
-// ============================================================
-// AUTHENTICATION COLORS
-// ============================================================
-
-function updateAuthColor(
-    id
-) {
+function updateAuthColor(id) {
 
     const element =
         document.getElementById(
             id
         );
 
-
     if (!element) {
         return;
     }
 
-
     const value =
         element.textContent
             .toUpperCase();
-
 
     if (
         value === "FAIL" ||
@@ -1013,24 +711,19 @@ function updateAuthColor(
 }
 
 
-
 updateAuthColor("spf");
-
 updateAuthColor("dkim");
-
 updateAuthColor("dmarc");
 
 
-
 // ============================================================
-// INDICATOR LIST
+// INDICATORS
 // ============================================================
 
 const indicatorContainer =
     document.getElementById(
         "indicators"
     );
-
 
 
 if (indicators.length === 0) {
@@ -1053,14 +746,11 @@ else {
                     "div"
                 );
 
-
             div.className =
                 "indicator";
 
-
             div.textContent =
                 "⚠️ " + indicator;
-
 
             indicatorContainer.appendChild(
                 div
@@ -1072,14 +762,12 @@ else {
 }
 
 
-
 // ============================================================
-// NETWORK INFORMATION
+// NETWORK
 // ============================================================
 
 const network =
     data.network || {};
-
 
 
 const ips =
@@ -1090,32 +778,27 @@ const ips =
         : [];
 
 
-
 const firstIP =
-    ips.length > 0
+    ips.length
         ? ips[0]
         : "Unknown";
-
 
 
 const senderDomain =
     email.from_email &&
     email.from_email.includes("@")
-        ? email.from_email
-            .split("@")[1]
+        ? email.from_email.split("@")[1]
         : "Unknown";
 
 
-
 // ============================================================
-// EMAIL ROUTE
+// ROUTE
 // ============================================================
 
 const route =
     document.getElementById(
         "emailRoute"
     );
-
 
 
 route.innerHTML = `
@@ -1138,11 +821,9 @@ route.innerHTML = `
 
     </div>
 
-
     <div class="arrow">
         →
     </div>
-
 
     <div class="route-node">
 
@@ -1154,11 +835,9 @@ route.innerHTML = `
 
     </div>
 
-
     <div class="arrow">
         →
     </div>
-
 
     <div class="route-node">
 
@@ -1172,11 +851,9 @@ route.innerHTML = `
 
     </div>
 
-
     <div class="arrow">
         →
     </div>
-
 
     <div class="route-node">
 
@@ -1198,7 +875,6 @@ route.innerHTML = `
 `;
 
 
-
 // ============================================================
 // GEOLOCATION
 // ============================================================
@@ -1209,7 +885,6 @@ setText(
 );
 
 
-
 const geolocation =
     Array.isArray(
         network.geolocation
@@ -1218,39 +893,30 @@ const geolocation =
         : [];
 
 
+if (geolocation.length) {
 
-const geo =
-    geolocation.length > 0
-        ? geolocation[0]
-        : null;
-
-
-
-if (geo) {
+    const geo =
+        geolocation[0];
 
     setText(
         "country",
         geo.country
     );
 
-
     setText(
         "region",
         geo.region
     );
-
 
     setText(
         "city",
         geo.city
     );
 
-
     setText(
         "isp",
         geo.isp
     );
-
 
     setText(
         "organization",
@@ -1258,7 +924,6 @@ if (geo) {
     );
 
 }
-
 
 
 // ============================================================
@@ -1271,12 +936,10 @@ setText(
 );
 
 
-
 setText(
     "graphIP",
     "🖥️ " + firstIP
 );
-
 
 
 // ============================================================
@@ -1289,8 +952,7 @@ const urlContainer =
     );
 
 
-
-if (urls.length === 0) {
+if (!urls.length) {
 
     urlContainer.innerHTML =
         `
@@ -1310,25 +972,32 @@ else {
                     "div"
                 );
 
-
             div.className =
                 "info-row";
 
+            const strong =
+                document.createElement(
+                    "strong"
+                );
 
-            div.innerHTML = `
+            strong.textContent =
+                "URL:";
 
-                <strong>
-                    URL:
-                </strong>
+            const span =
+                document.createElement(
+                    "span"
+                );
 
-                <span>
-                    ${escapeHtml(
-                        url
-                    )}
-                </span>
+            span.textContent =
+                url;
 
-            `;
+            div.appendChild(
+                strong
+            );
 
+            div.appendChild(
+                span
+            );
 
             urlContainer.appendChild(
                 div
@@ -1338,7 +1007,6 @@ else {
     );
 
 }
-
 
 
 // ============================================================
@@ -1353,15 +1021,13 @@ const suspiciousUrls =
         : [];
 
 
-
 const suspiciousContainer =
     document.getElementById(
         "suspiciousUrls"
     );
 
 
-
-if (suspiciousUrls.length === 0) {
+if (!suspiciousUrls.length) {
 
     suspiciousContainer.innerHTML =
         `
@@ -1381,23 +1047,20 @@ else {
                     "div"
                 );
 
-
             div.className =
                 "indicator";
-
 
             const reasons =
                 Array.isArray(
                     item.reasons
                 )
-                    ? item.reasons
-                    : [];
-
+                    ? item.reasons.join(
+                        ", "
+                    )
+                    : "";
 
             div.innerHTML = `
-
                 🔗
-
                 <strong>
                     ${escapeHtml(
                         item.url
@@ -1407,7 +1070,6 @@ else {
                 <br>
 
                 Domain:
-
                 ${escapeHtml(
                     item.domain
                 )}
@@ -1415,13 +1077,10 @@ else {
                 <br>
 
                 Reason:
-
                 ${escapeHtml(
-                    reasons.join(", ")
+                    reasons
                 )}
-
             `;
-
 
             suspiciousContainer.appendChild(
                 div
@@ -1431,7 +1090,6 @@ else {
     );
 
 }
-
 
 
 // ============================================================
@@ -1446,15 +1104,13 @@ const riskFactors =
         : [];
 
 
-
 const riskContainer =
     document.getElementById(
         "riskFactors"
     );
 
 
-
-if (riskFactors.length === 0) {
+if (!riskFactors.length) {
 
     riskContainer.innerHTML =
         `
@@ -1474,27 +1130,37 @@ else {
                     "div"
                 );
 
-
             div.className =
                 "auth-row";
 
+            const left =
+                document.createElement(
+                    "span"
+                );
 
-            div.innerHTML = `
+            left.textContent =
+                factor.indicator ||
+                "Unknown";
 
-                <span>
-                    ${escapeHtml(
-                        factor.indicator
-                    )}
-                </span>
+            const right =
+                document.createElement(
+                    "strong"
+                );
 
-                <strong>
-                    +${escapeHtml(
-                        factor.points
-                    )}
-                </strong>
+            right.textContent =
+                "+" +
+                (
+                    factor.points ||
+                    0
+                );
 
-            `;
+            div.appendChild(
+                left
+            );
 
+            div.appendChild(
+                right
+            );
 
             riskContainer.appendChild(
                 div
@@ -1506,22 +1172,16 @@ else {
 }
 
 
-
 // ============================================================
-// AI INVESTIGATION SUMMARY
+// SUMMARY
 // ============================================================
 
 let summary = "";
 
 
-
 if (
-    threatTypes.includes(
-        "Phishing"
-    ) &&
-    threatTypes.includes(
-        "BEC"
-    )
+    threatTypes.includes("Phishing") &&
+    threatTypes.includes("BEC")
 ) {
 
     summary =
@@ -1529,9 +1189,7 @@ if (
 
 }
 else if (
-    threatTypes.includes(
-        "Phishing"
-    )
+    threatTypes.includes("Phishing")
 ) {
 
     summary =
@@ -1539,9 +1197,7 @@ else if (
 
 }
 else if (
-    threatTypes.includes(
-        "BEC"
-    )
+    threatTypes.includes("BEC")
 ) {
 
     summary =
@@ -1556,8 +1212,7 @@ else {
 }
 
 
-
-if (indicators.length > 0) {
+if (indicators.length) {
 
     summary +=
         "The analysis identified "
@@ -1565,7 +1220,6 @@ if (indicators.length > 0) {
         + " suspicious indicator(s). ";
 
 }
-
 
 
 if (
@@ -1580,10 +1234,7 @@ if (
 }
 
 
-
-if (
-    suspiciousUrls.length > 0
-) {
+if (suspiciousUrls.length) {
 
     summary +=
         "Suspicious URL characteristics were detected and should be investigated further. ";
@@ -1591,8 +1242,7 @@ if (
 }
 
 
-
-if (ips.length > 0) {
+if (ips.length) {
 
     summary +=
         "The email contains network infrastructure associated with IP address "
@@ -1602,12 +1252,10 @@ if (ips.length > 0) {
 }
 
 
-
 setText(
     "summary",
     summary
 );
-
 
 
 // ============================================================
@@ -1618,19 +1266,16 @@ const evidence =
     data.evidence || {};
 
 
-
 setText(
     "hash",
     evidence.sha256
 );
 
 
-
 const integrity =
     document.getElementById(
         "integrity"
     );
-
 
 
 if (
@@ -1663,14 +1308,11 @@ if (
 }
 
 
-
 // ============================================================
 // ESCAPE HTML
 // ============================================================
 
-function escapeHtml(
-    value
-) {
+function escapeHtml(value) {
 
     if (
         value === undefined ||
@@ -1680,7 +1322,6 @@ function escapeHtml(
         return "";
 
     }
-
 
     return String(value)
 
@@ -1712,9 +1353,8 @@ function escapeHtml(
 }
 
 
-
 // ============================================================
-// GENERATE FORENSIC PDF REPORT
+// GENERATE REPORT
 // ============================================================
 
 const generateReportBtn =
@@ -1723,55 +1363,36 @@ const generateReportBtn =
     );
 
 
-
 generateReportBtn.addEventListener(
     "click",
     generateReport
 );
 
 
-
 async function generateReport() {
 
-    try {
+    const storedFile =
+        localStorage.getItem(
+            "emailFile"
+        );
 
-        // Disable button
+    if (!storedFile) {
+
+        alert(
+            "Original .eml file was not found. Please analyze the email again."
+        );
+
+        return;
+    }
+
+    try {
 
         generateReportBtn.disabled =
             true;
 
-
         generateReportBtn.innerText =
             "Generating Report...";
 
-
-        // ----------------------------------------------------
-        // Get original email file
-        // ----------------------------------------------------
-
-        const storedFile =
-            localStorage.getItem(
-                "emailFile"
-            );
-
-
-        if (!storedFile) {
-
-            alert(
-                "Original .eml file was not found. Please analyze the email again."
-            );
-
-            return;
-
-        }
-
-
-        /*
-            The file is stored in localStorage
-            as Base64.
-
-            Convert Base64 back to Blob.
-        */
 
         const parts =
             storedFile.split(",");
@@ -1782,7 +1403,8 @@ async function generateReport() {
                 .match(
                     /:(.*?);/
                 )?.[1]
-            || "message/rfc822";
+            ||
+            "message/rfc822";
 
 
         const binary =
@@ -1809,22 +1431,24 @@ async function generateReport() {
         }
 
 
+        const originalFilename =
+            localStorage.getItem(
+                "emailFileName"
+            ) ||
+            "email.eml";
+
+
         const file =
             new File(
                 [
                     array
                 ],
-                "email.eml",
+                originalFilename,
                 {
                     type: mime
                 }
             );
 
-
-
-        // ----------------------------------------------------
-        // Form Data
-        // ----------------------------------------------------
 
         const formData =
             new FormData();
@@ -1836,11 +1460,6 @@ async function generateReport() {
         );
 
 
-
-        // ----------------------------------------------------
-        // LIVE RENDER BACKEND
-        // ----------------------------------------------------
-
         const response =
             await fetch(
                 `${API_BASE_URL}/analyze-email/report`,
@@ -1851,58 +1470,32 @@ async function generateReport() {
             );
 
 
-
-        // ----------------------------------------------------
-        // Handle API error
-        // ----------------------------------------------------
-
         if (!response.ok) {
 
             let errorMessage =
                 "Failed to generate forensic report.";
-
 
             try {
 
                 const errorData =
                     await response.json();
 
-
                 errorMessage =
                     errorData.detail ||
                     errorMessage;
 
             }
-            catch (error) {
-
-                console.error(
-                    "Error reading API response:",
-                    error
-                );
-
-            }
-
+            catch (error) {}
 
             throw new Error(
                 errorMessage
             );
-
         }
 
-
-
-        // ----------------------------------------------------
-        // Get PDF Blob
-        // ----------------------------------------------------
 
         const blob =
             await response.blob();
 
-
-
-        // ----------------------------------------------------
-        // Create Download URL
-        // ----------------------------------------------------
 
         const downloadUrl =
             window.URL.createObjectURL(
@@ -1910,21 +1503,15 @@ async function generateReport() {
             );
 
 
-
-        const a =
+        const link =
             document.createElement(
                 "a"
             );
 
 
-        a.href =
+        link.href =
             downloadUrl;
 
-
-
-        // ----------------------------------------------------
-        // Get backend filename
-        // ----------------------------------------------------
 
         const disposition =
             response.headers.get(
@@ -1932,10 +1519,8 @@ async function generateReport() {
             );
 
 
-
         let filename =
             "EmailGuard_Forensic_Report.pdf";
-
 
 
         if (disposition) {
@@ -1944,7 +1529,6 @@ async function generateReport() {
                 disposition.match(
                     /filename="?([^"]+)"?/i
                 );
-
 
             if (
                 match &&
@@ -1959,34 +1543,24 @@ async function generateReport() {
         }
 
 
-
-        a.download =
+        link.download =
             filename;
 
 
-
         document.body.appendChild(
-            a
+            link
         );
 
 
-        a.click();
+        link.click();
 
 
-        a.remove();
-
+        link.remove();
 
 
         window.URL.revokeObjectURL(
             downloadUrl
         );
-
-
-
-        console.log(
-            "PDF report downloaded successfully."
-        );
-
 
 
         alert(
@@ -2001,7 +1575,6 @@ async function generateReport() {
             error
         );
 
-
         alert(
             "Report generation failed:\n\n"
             + error.message
@@ -2013,7 +1586,6 @@ async function generateReport() {
         generateReportBtn.disabled =
             false;
 
-
         generateReportBtn.innerText =
             "Generate Report";
 
@@ -2021,10 +1593,7 @@ async function generateReport() {
 
 }
 
-
 </script>
 
-
 </body>
-
 </html>

@@ -21,13 +21,7 @@
 
 </head>
 
-
 <body>
-
-
-<!-- =====================================================
-     NAVBAR
-====================================================== -->
 
 <nav class="navbar">
 
@@ -42,17 +36,7 @@
 </nav>
 
 
-
-<!-- =====================================================
-     MAIN
-====================================================== -->
-
 <main class="upload-container">
-
-
-    <!-- =================================================
-         HERO
-    ================================================== -->
 
     <section class="hero">
 
@@ -63,7 +47,6 @@
             </span>
         </h1>
 
-
         <p>
             Analyze suspicious emails using header forensics,
             phishing detection, authentication analysis,
@@ -73,33 +56,21 @@
     </section>
 
 
-
-    <!-- =================================================
-         UPLOAD PANEL
-    ================================================== -->
-
     <section class="upload-panel">
-
 
         <div class="upload-icon">
             📧
         </div>
 
-
         <h2>
             Upload Email for Analysis
         </h2>
-
 
         <p>
             Upload an email file in
             <strong>.eml</strong>
             format.
         </p>
-
-
-
-        <!-- FILE INPUT -->
 
         <input
             type="file"
@@ -108,8 +79,6 @@
             hidden
         >
 
-
-
         <label
             for="emailFile"
             class="upload-btn"
@@ -117,20 +86,12 @@
             Choose .EML File
         </label>
 
-
-
-        <!-- FILE NAME -->
-
         <div
             id="fileName"
             class="file-name"
         >
             No file selected
         </div>
-
-
-
-        <!-- ANALYZE BUTTON -->
 
         <button
             id="analyzeBtn"
@@ -140,26 +101,15 @@
             🔍 Analyze Email
         </button>
 
-
-
-        <!-- STATUS -->
-
         <div
             id="statusMessage"
             class="status-message"
         ></div>
 
-
     </section>
 
 
-
-    <!-- =================================================
-         FEATURES
-    ================================================== -->
-
     <section class="features">
-
 
         <div class="feature-card">
 
@@ -177,7 +127,6 @@
             </p>
 
         </div>
-
 
 
         <div class="feature-card">
@@ -198,7 +147,6 @@
         </div>
 
 
-
         <div class="feature-card">
 
             <div class="feature-icon">
@@ -215,7 +163,6 @@
             </p>
 
         </div>
-
 
 
         <div class="feature-card">
@@ -235,62 +182,37 @@
 
         </div>
 
-
     </section>
-
 
 </main>
 
 
-
-<!-- =====================================================
-     JAVASCRIPT
-====================================================== -->
-
 <script>
 
-
-// ============================================================
-// LIVE RENDER BACKEND
-// ============================================================
-
 const API_BASE_URL =
-    "https://emailguard-backend-kln0.onrender.com";
+    "http://127.0.0.1:8000";
 
-
-
-// ============================================================
-// ELEMENTS
-// ============================================================
 
 const emailFileInput =
     document.getElementById(
         "emailFile"
     );
 
-
 const fileName =
     document.getElementById(
         "fileName"
     );
-
 
 const analyzeBtn =
     document.getElementById(
         "analyzeBtn"
     );
 
-
 const statusMessage =
     document.getElementById(
         "statusMessage"
     );
 
-
-
-// ============================================================
-// FILE SELECTED
-// ============================================================
 
 emailFileInput.addEventListener(
     "change",
@@ -299,18 +221,13 @@ emailFileInput.addEventListener(
         const file =
             emailFileInput.files[0];
 
-
         if (!file) {
 
             fileName.textContent =
                 "No file selected";
 
             return;
-
         }
-
-
-        // Check extension
 
         if (
             !file.name
@@ -322,31 +239,20 @@ emailFileInput.addEventListener(
                 "Only .eml files are supported."
             );
 
-
             emailFileInput.value =
                 "";
-
 
             fileName.textContent =
                 "No file selected";
 
-
             return;
-
         }
-
 
         fileName.textContent =
             file.name;
-
     }
 );
 
-
-
-// ============================================================
-// ANALYZE EMAIL
-// ============================================================
 
 analyzeBtn.addEventListener(
     "click",
@@ -354,17 +260,10 @@ analyzeBtn.addEventListener(
 );
 
 
-
 async function analyzeEmail() {
-
-
-    // --------------------------------------------------------
-    // Check file
-    // --------------------------------------------------------
 
     const file =
         emailFileInput.files[0];
-
 
     if (!file) {
 
@@ -373,73 +272,29 @@ async function analyzeEmail() {
         );
 
         return;
-
     }
-
-
-
-    // --------------------------------------------------------
-    // Check extension
-    // --------------------------------------------------------
-
-    if (
-        !file.name
-            .toLowerCase()
-            .endsWith(".eml")
-    ) {
-
-        alert(
-            "Only .eml files are supported."
-        );
-
-        return;
-
-    }
-
-
 
     try {
-
-
-        // ----------------------------------------------------
-        // Loading state
-        // ----------------------------------------------------
 
         analyzeBtn.disabled =
             true;
 
-
         analyzeBtn.innerText =
             "⏳ Analyzing Email...";
-
 
         statusMessage.textContent =
             "Uploading email to EmailGuard AI...";
 
-
-
-        // ----------------------------------------------------
-        // FormData
-        // ----------------------------------------------------
-
         const formData =
             new FormData();
-
 
         formData.append(
             "file",
             file
         );
 
-
-
-        // ----------------------------------------------------
-        // Send to Render Backend
-        // ----------------------------------------------------
-
         statusMessage.textContent =
             "🔍 Running threat analysis...";
-
 
         const response =
             await fetch(
@@ -450,121 +305,56 @@ async function analyzeEmail() {
                 }
             );
 
-
-
-        // ----------------------------------------------------
-        // Check response
-        // ----------------------------------------------------
-
         if (!response.ok) {
 
-
-            let errorMessage =
+            let message =
                 "Email analysis failed.";
-
 
             try {
 
                 const errorData =
                     await response.json();
 
-
-                errorMessage =
+                message =
                     errorData.detail ||
-                    errorMessage;
+                    message;
 
             }
-            catch (error) {
-
-                console.error(
-                    error
-                );
-
-            }
-
+            catch (e) {}
 
             throw new Error(
-                errorMessage
+                message
             );
-
         }
-
-
-
-        // ----------------------------------------------------
-        // Get JSON
-        // ----------------------------------------------------
 
         const result =
             await response.json();
 
-
-
-        console.log(
-            "EmailGuard analysis:",
-            result
-        );
-
-
-
-        // ----------------------------------------------------
-        // Save analysis result
-        // ----------------------------------------------------
-
         localStorage.setItem(
             "emailAnalysis",
-            JSON.stringify(
-                result
-            )
+            JSON.stringify(result)
         );
-
-
-
-        // ----------------------------------------------------
-        // Save original EML file
-        // ----------------------------------------------------
 
         const base64File =
             await fileToBase64(
                 file
             );
 
-
         localStorage.setItem(
             "emailFile",
             base64File
         );
-
-
-
-        // ----------------------------------------------------
-        // Save filename
-        // ----------------------------------------------------
 
         localStorage.setItem(
             "emailFileName",
             file.name
         );
 
-
-
-        // ----------------------------------------------------
-        // Success
-        // ----------------------------------------------------
-
         statusMessage.textContent =
             "✅ Analysis completed successfully.";
 
-
-
         analyzeBtn.innerText =
             "✅ Analysis Complete";
-
-
-
-        // ----------------------------------------------------
-        // Open Dashboard
-        // ----------------------------------------------------
 
         setTimeout(
             function () {
@@ -576,47 +366,31 @@ async function analyzeEmail() {
             700
         );
 
-
     }
     catch (error) {
 
-
         console.error(
-            "Analysis Error:",
             error
         );
 
-
         statusMessage.textContent =
             "❌ Analysis failed.";
-
 
         alert(
             "Email analysis failed:\n\n"
             + error.message
         );
 
-
         analyzeBtn.disabled =
             false;
 
-
         analyzeBtn.innerText =
             "🔍 Analyze Email";
-
     }
-
 }
 
 
-
-// ============================================================
-// FILE → BASE64
-// ============================================================
-
-function fileToBase64(
-    file
-) {
+function fileToBase64(file) {
 
     return new Promise(
         function (
@@ -627,41 +401,24 @@ function fileToBase64(
             const reader =
                 new FileReader();
 
-
             reader.onload =
                 function () {
 
                     resolve(
                         reader.result
                     );
-
                 };
-
 
             reader.onerror =
-                function (error) {
-
-                    reject(
-                        error
-                    );
-
-                };
-
+                reject;
 
             reader.readAsDataURL(
                 file
             );
-
         }
     );
-
 }
 
-
-
-// ============================================================
-// CHECK BACKEND
-// ============================================================
 
 async function checkBackend() {
 
@@ -669,38 +426,29 @@ async function checkBackend() {
 
         const response =
             await fetch(
-                `${API_BASE_URL}/docs`
+                `${API_BASE_URL}/health`
             );
-
 
         if (response.ok) {
 
             console.log(
-                "✅ EmailGuard backend is online."
+                "EmailGuard backend is online."
             );
-
         }
 
     }
     catch (error) {
 
         console.warn(
-            "⚠ Backend is not reachable.",
-            error
+            "Backend is not reachable."
         );
-
     }
-
 }
-
 
 
 checkBackend();
 
-
 </script>
 
-
 </body>
-
 </html>

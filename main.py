@@ -6,13 +6,15 @@ from fastapi import (
 )
 
 from fastapi.middleware.cors import CORSMiddleware
+
 from fastapi.responses import FileResponse
 
 from email_analyzer import analyze_email
+
 from report_generator import generate_forensic_report
 
-from datetime import datetime
 import os
+import tempfile
 
 
 # ============================================================
@@ -21,11 +23,8 @@ import os
 
 app = FastAPI(
     title="EmailGuard AI",
-    description=(
-        "AI-powered Email Threat Detection "
-        "and Forensic Intelligence Platform"
-    ),
-    version="1.0"
+    description="AI-Powered Email Threat Detection and Forensic Intelligence Platform",
+    version="1.0.0"
 )
 
 
@@ -35,43 +34,19 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-
     allow_origins=["*"],
-
-    allow_credentials=True,
-
+    allow_credentials=False,
     allow_methods=["*"],
-
-    allow_headers=["*"]
+    allow_headers=["*"],
 )
 
 
 # ============================================================
-# DIRECTORIES
-# ============================================================
-
-REPORTS_DIR = "reports"
-
-UPLOADS_DIR = "uploads"
-
-
-os.makedirs(
-    REPORTS_DIR,
-    exist_ok=True
-)
-
-os.makedirs(
-    UPLOADS_DIR,
-    exist_ok=True
-)
-
-
-# ============================================================
-# HOME
+# ROOT
 # ============================================================
 
 @app.get("/")
-def home():
+async def root():
 
     return {
         "message": "EmailGuard AI Backend is running",
@@ -80,14 +55,15 @@ def home():
 
 
 # ============================================================
-# HEALTH
+# HEALTH CHECK
 # ============================================================
 
 @app.get("/health")
-def health():
+async def health():
 
     return {
-        "status": "healthy"
+        "status": "online",
+        "service": "EmailGuard AI"
     }
 
 
@@ -96,66 +72,66 @@ def health():
 # ============================================================
 
 @app.post("/analyze-email")
-async def analyze_email_endpoint(
+async def analyze_uploaded_email(
     file: UploadFile = File(...)
 ):
 
     # --------------------------------------------------------
-    # Validate filename
+    # Validate extension
     # --------------------------------------------------------
 
     if not file.filename:
 
         raise HTTPException(
             status_code=400,
-            detail="No file selected"
+            detail="No filename provided."
         )
-
-    # --------------------------------------------------------
-    # Validate extension
-    # --------------------------------------------------------
 
     if not file.filename.lower().endswith(".eml"):
 
         raise HTTPException(
             status_code=400,
-            detail="Only .eml files are supported"
+            detail="Only .eml files are supported."
         )
+
+    # --------------------------------------------------------
+    # Read file
+    # --------------------------------------------------------
 
     try:
 
-        # ----------------------------------------------------
-        # Read uploaded file
-        # ----------------------------------------------------
+        content = await file.read()
 
-        file_data = await file.read()
+    except Exception as error:
 
-        if not file_data:
-
-            raise HTTPException(
-                status_code=400,
-                detail="Uploaded file is empty"
-            )
-
-        # ----------------------------------------------------
-        # Analyze email
-        # ----------------------------------------------------
-
-        result = analyze_email(
-            file_data
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unable to read file: {error}"
         )
 
-        # ----------------------------------------------------
-        # Add filename
-        # ----------------------------------------------------
+    # --------------------------------------------------------
+    # Empty file
+    # --------------------------------------------------------
 
-        result["filename"] = file.filename
+    if not content:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Uploaded email file is empty."
+        )
+
+    # --------------------------------------------------------
+    # Analyze
+    # --------------------------------------------------------
+
+    try:
+
+        result = analyze_email(
+            content,
+            file.filename
+        )
 
         return result
-
-    except HTTPException:
-
-        raise
 
     except Exception as error:
 
@@ -175,234 +151,156 @@ async def analyze_email_endpoint(
 # ============================================================
 
 @app.post("/analyze-email/report")
-async def analyze_email_report(
+async def generate_report(
     file: UploadFile = File(...)
 ):
 
     # --------------------------------------------------------
-    # Validate filename
+    # Validate
     # --------------------------------------------------------
 
     if not file.filename:
 
         raise HTTPException(
             status_code=400,
-            detail="No file selected"
+            detail="No filename provided."
         )
-
-    # --------------------------------------------------------
-    # Validate .eml
-    # --------------------------------------------------------
 
     if not file.filename.lower().endswith(".eml"):
 
         raise HTTPException(
             status_code=400,
-            detail="Only .eml files are supported"
+            detail="Only .eml files are supported."
         )
+
+    # --------------------------------------------------------
+    # Read EML
+    # --------------------------------------------------------
 
     try:
 
-        # ----------------------------------------------------
-        # Read file
-        # ----------------------------------------------------
+        content = await file.read()
 
-        file_data = await file.read()
+    except Exception as error:
 
-        if not file_data:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unable to read email: {error}"
+        )
 
-            raise HTTPException(
-                status_code=400,
-                detail="Uploaded file is empty"
-            )
+    if not content:
 
-        # ----------------------------------------------------
-        # Analyze
-        # ----------------------------------------------------
+        raise HTTPException(
+            status_code=400,
+            detail="Uploaded email file is empty."
+        )
+
+    # --------------------------------------------------------
+    # Analyze
+    # --------------------------------------------------------
+
+    try:
 
         result = analyze_email(
-            file_data
+            content,
+            file.filename
         )
 
-        result["filename"] = file.filename
+    except Exception as error:
 
-        # ----------------------------------------------------
-        # Case ID
-        # ----------------------------------------------------
-
-        case_id = result.get(
-            "case_id"
+        print(
+            "Report analysis error:",
+            error
         )
 
-        if not case_id:
-
-            case_id = (
-                "EM-"
-                +
-                datetime.now().strftime(
-                    "%Y%m%d%H%M%S"
-                )
-            )
-
-            result["case_id"] = case_id
-
-        # ----------------------------------------------------
-        # Generate filename
-        # ----------------------------------------------------
-
-        pdf_filename = (
-            f"EmailGuard_Forensic_Report_"
-            f"{case_id}.pdf"
+        raise HTTPException(
+            status_code=500,
+            detail=str(error)
         )
 
-        pdf_path = os.path.join(
-            REPORTS_DIR,
-            pdf_filename
-        )
+    # --------------------------------------------------------
+    # Temporary PDF
+    # --------------------------------------------------------
 
-        # ----------------------------------------------------
-        # Generate PDF
-        # ----------------------------------------------------
+    temp_file = tempfile.NamedTemporaryFile(
+        delete=False,
+        suffix=".pdf"
+    )
+
+    output_path = temp_file.name
+
+    temp_file.close()
+
+    # --------------------------------------------------------
+    # Generate PDF
+    # --------------------------------------------------------
+
+    try:
 
         generate_forensic_report(
             result,
-            pdf_path
+            output_path
         )
-
-        # ----------------------------------------------------
-        # Verify PDF
-        # ----------------------------------------------------
-
-        if not os.path.exists(pdf_path):
-
-            raise HTTPException(
-                status_code=500,
-                detail="PDF report was not generated"
-            )
-
-        # ----------------------------------------------------
-        # Return PDF
-        # ----------------------------------------------------
-
-        return FileResponse(
-            path=pdf_path,
-
-            media_type="application/pdf",
-
-            filename=pdf_filename,
-
-            headers={
-                "Content-Disposition":
-                    f'attachment; filename="{pdf_filename}"'
-            }
-        )
-
-    except HTTPException:
-
-        raise
 
     except Exception as error:
 
         print(
-            "Report generation error:",
+            "PDF generation error:",
             error
         )
 
-        raise HTTPException(
-            status_code=500,
-            detail=str(error)
-        )
+        if os.path.exists(output_path):
 
-
-# ============================================================
-# GENERATE REPORT FROM JSON
-# ============================================================
-
-@app.post("/generate-report")
-async def generate_report_from_json(
-    data: dict
-):
-
-    try:
-
-        # ----------------------------------------------------
-        # Case ID
-        # ----------------------------------------------------
-
-        case_id = data.get(
-            "case_id"
-        )
-
-        if not case_id:
-
-            case_id = (
-                "EM-"
-                +
-                datetime.now().strftime(
-                    "%Y%m%d%H%M%S"
-                )
+            os.remove(
+                output_path
             )
-
-            data["case_id"] = case_id
-
-        # ----------------------------------------------------
-        # Generate filename
-        # ----------------------------------------------------
-
-        pdf_filename = (
-            f"EmailGuard_Forensic_Report_"
-            f"{case_id}.pdf"
-        )
-
-        pdf_path = os.path.join(
-            REPORTS_DIR,
-            pdf_filename
-        )
-
-        # ----------------------------------------------------
-        # Generate
-        # ----------------------------------------------------
-
-        generate_forensic_report(
-            data,
-            pdf_path
-        )
-
-        # ----------------------------------------------------
-        # Verify
-        # ----------------------------------------------------
-
-        if not os.path.exists(pdf_path):
-
-            raise HTTPException(
-                status_code=500,
-                detail="PDF report generation failed"
-            )
-
-        # ----------------------------------------------------
-        # Return
-        # ----------------------------------------------------
-
-        return FileResponse(
-            path=pdf_path,
-
-            media_type="application/pdf",
-
-            filename=pdf_filename
-        )
-
-    except HTTPException:
-
-        raise
-
-    except Exception as error:
-
-        print(
-            "JSON report error:",
-            error
-        )
 
         raise HTTPException(
             status_code=500,
-            detail=str(error)
+            detail=f"PDF generation failed: {error}"
         )
+
+    # --------------------------------------------------------
+    # Filename
+    # --------------------------------------------------------
+
+    pdf_filename = (
+        "EmailGuard_Forensic_Report_"
+        + result.get(
+            "case_id",
+            "Report"
+        )
+        + ".pdf"
+    )
+
+    # --------------------------------------------------------
+    # Return PDF
+    # --------------------------------------------------------
+
+    return FileResponse(
+        path=output_path,
+        media_type="application/pdf",
+        filename=pdf_filename,
+        background=None
+    )
+
+
+# ============================================================
+# RUN LOCALLY
+# ============================================================
+
+if __name__ == "__main__":
+
+    import uvicorn
+
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=int(
+            os.environ.get(
+                "PORT",
+                8000
+            )
+        ),
+        reload=False
+    )
